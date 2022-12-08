@@ -13,6 +13,7 @@ from wordcloud import WordCloud,STOPWORDS
 
 
 # %%
+#Database setup
 jobs = pd.read_csv('../dataset/all_jobs.csv') # Importing dataset
 jobs.rename(columns={'Job Title': 'job_title', 'Salary Estimate': 'Salary_Estimate','Job Description': 'Job_Description','Company Name': 'Company_Name','Type of ownership':'Type_ownership','Easy Apply':'Easy_apply'}, inplace= True)
 
