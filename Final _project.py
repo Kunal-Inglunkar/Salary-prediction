@@ -11,16 +11,11 @@ import re
 from wordcloud import WordCloud,STOPWORDS
 %matplotlib inline
 
-# %%
-import os
-os.chdir('C:\\Users\\apmej\\OneDrive\\Escritorio\\Personal\\University applications\\GW\\DATS6103\\Final Project\\kaggle\\input')
-cwd = os.getcwd()  # Get the current working directory (cwd)
-files = os.listdir(cwd)  # Get all the files in that directory
-print("Files in %r: %s" % (cwd, files))
 
 # %%
-jobs = pd.read_csv('all_jobs.csv') # Importing dataset
+jobs = pd.read_csv('../dataset/all_jobs.csv') # Importing dataset
 jobs.rename(columns={'Job Title': 'job_title', 'Salary Estimate': 'Salary_Estimate','Job Description': 'Job_Description','Company Name': 'Company_Name','Type of ownership':'Type_ownership','Easy Apply':'Easy_apply'}, inplace= True)
+
 # %%
 jobs = jobs.drop(labels=['Unnamed: 0'],axis=1) # Removing unnecesary column 
 jobs #exploring the data
@@ -104,7 +99,7 @@ jobs.drop(['newCol'],1,inplace = True) # removing row
 # removing employer est.
 jobs['Salary_Estimate'] = jobs['Salary_Estimate'].map(lambda x:  x.rstrip('(Employer est.)')) # Removing employer estimate
 
-#%% Addingmin and max salary ranges
+#%% Adding min and max salary ranges
 jobs['Min_Salary'] = 0
 jobs['Max_Salary'] = 0
 
