@@ -399,19 +399,23 @@ jobs.drop(['Salary_Estimate','Job_Description'],1,inplace = True)
 #%%
 #### Exploring the data with visualizations
 
-#%% Min and max salary distribution for data scientists
+#%% Min, max and avg salary distribution for data scientists
+
 plt.figure(figsize=(13,5))
 sns.set(style= 'white') #style==background
 sns.distplot(jobs['Min_Salary'], color="r")
 sns.distplot(jobs['Max_Salary'], color="g")
+sns.distplot(jobs['Est_Salary'], color="b")
 
 plt.xlabel("Salary ($'000)")
-plt.legend({'Min_Salary':jobs['Min_Salary'],'Max_Salary':jobs['Max_Salary']})
-plt.title("Distribution of Min & Max Salary",fontsize=19)
+plt.legend({'Min_Salary':jobs['Min_Salary'],'Max_Salary':jobs['Max_Salary'],'Est_Salary':jobs['Est_Salary']})
+plt.title("Distribution of Min, Max and Average Salary",fontsize=19)
 plt.xlim(0,210)
 plt.xticks(np.arange(0, 210, step=10))
 plt.tight_layout()
 plt.show()
+
+plt.savefig('min_max_sal.png', dpi=300)
 
 
 #%% Salary/Hires by Firm
@@ -547,19 +551,21 @@ jobs_VA_DC_MD
 
 #Visual Exploration
 
-#%% Min and max salary distribution for data scientists
+#%% Avg salary distribution for data scientists national and regional
 plt.figure(figsize=(13,5))
 sns.set(style= 'white') #style==background
-sns.distplot(jobs_VA_DC_MD['Min_Salary'], color="r")
-sns.distplot(jobs_VA_DC_MD['Max_Salary'], color="g")
+sns.distplot(jobs_VA_DC_MD['Est_Salary'], color="r")
+sns.distplot(jobs['Est_Salary'], color="g")
 
 plt.xlabel("Salary ($'000)")
-plt.legend({'Min_Salary':jobs_VA_DC_MD['Min_Salary'],'Max_Salary':jobs_VA_DC_MD['Max_Salary']})
-plt.title("Distribution of Min & Max Salary VA,DC,MD",fontsize=19)
+plt.legend({'Est_Salary VA_MD_DC':jobs_VA_DC_MD['Est_Salary'],'Est_Salary_all':jobs['Est_Salary']})
+plt.title("Distribution of Avg Salary in VA,DC,MD and national level",fontsize=19)
 plt.xlim(0,210)
 plt.xticks(np.arange(0, 210, step=10))
 plt.tight_layout()
 plt.show()
+plt.savefig('avg_sal.png', dpi=300)
+
 
 #%%
 #Comparison heatmap
