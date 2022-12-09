@@ -665,10 +665,10 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 jobs.isnull().sum()
 #%%
 sns.distplot(jobs.Rating)
-#Replacinf Rating null values with mean
+#Replacing Rating null values with mean
 jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
 #%%
-#Rplacing Headquaters,Industry,Sector null values wioth mode
+#Replacing Headquaters,Industry,Sector null values with mode
 jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
 # %%
 jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
@@ -677,6 +677,39 @@ jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
 sns.distplot(jobs.Founded)
 # %%
 jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
+
+# %%
+sns.displot(jobs.MaxRevenue)
+# %%
+jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
+# %%
+sns.distplot(jobs.Years_Founded)
+# %%
+jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
+
+jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
+# %%
+jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
+# %%
+jobs.State=jobs.State.fillna(jobs.State.mode()[0])
+# %%
+jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
+# %%
+jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
+sns.distplot(jobs.MaxEmpSize)
+# %%
+jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
+# %%
+jobs.Revenue_USD.value_counts()
+#%%
+
+# %%
+jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
+# %%
+jobs=jobs.drop(["Revenue"],axis=1)
+#%%
+#Checking for any null values
+jobs.isnull().sum()
 #### Pending tasks
 
 
