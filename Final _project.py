@@ -654,7 +654,23 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
-
+#%%
+#Findind Null values 
+jobs.isnull().sum()
+#%%
+sns.distplot(jobs.Rating)
+#Replacinf Rating null values with mean
+jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
+#%%
+#Rplacing Headquaters,Industry,Sector null values wioth mode
+jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
+# %%
+jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
+jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
+# %%
+sns.distplot(jobs.Founded)
+# %%
+jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
 #### Pending tasks
 
 
