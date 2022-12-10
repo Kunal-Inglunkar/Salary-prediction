@@ -11,16 +11,12 @@ import re
 from wordcloud import WordCloud,STOPWORDS
 %matplotlib inline
 
-# %%
-import os
-os.chdir('C:\\Users\\apmej\\OneDrive\\Escritorio\\Personal\\University applications\\GW\\DATS6103\\Final Project\\kaggle\\input')
-cwd = os.getcwd()  # Get the current working directory (cwd)
-files = os.listdir(cwd)  # Get all the files in that directory
-print("Files in %r: %s" % (cwd, files))
 
 # %%
-jobs = pd.read_csv('all_jobs.csv') # Importing dataset
+#Database setup
+jobs = pd.read_csv('../dataset/all_jobs.csv') # Importing dataset
 jobs.rename(columns={'Job Title': 'job_title', 'Salary Estimate': 'Salary_Estimate','Job Description': 'Job_Description','Company Name': 'Company_Name','Type of ownership':'Type_ownership','Easy Apply':'Easy_apply'}, inplace= True)
+
 # %%
 jobs = jobs.drop(labels=['Unnamed: 0'],axis=1) # Removing unnecesary column 
 jobs #exploring the data
@@ -104,7 +100,7 @@ jobs.drop(['newCol'],1,inplace = True) # removing row
 # removing employer est.
 jobs['Salary_Estimate'] = jobs['Salary_Estimate'].map(lambda x:  x.rstrip('(Employer est.)')) # Removing employer estimate
 
-#%% Addingmin and max salary ranges
+#%% Adding min and max salary ranges
 jobs['Min_Salary'] = 0
 jobs['Max_Salary'] = 0
 
@@ -664,6 +660,49 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
+#%%
+#Findind Null values 
+jobs.isnull().sum()
+#%%
+sns.distplot(jobs.Rating)
+#Replacing Rating null values with mean
+jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
+#%%
+#Replacing Headquaters,Industry,Sector null values with mode
+jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
+# %%
+jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
+jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
+# %%
+sns.distplot(jobs.Founded)
+# %%
+jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
+
+# %%
+sns.displot(jobs.MaxRevenue)
+# %%
+jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
+# %%
+sns.distplot(jobs.Years_Founded)
+# %%
+jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
+
+jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
+# %%
+jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
+# %%
+jobs.State=jobs.State.fillna(jobs.State.mode()[0])
+# %%
+jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
+# %%
+jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
+sns.distplot(jobs.MaxEmpSize)
+# %%
+jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
+# %%
+jobs.Revenue_USD.value_counts()
+#%%
+
 
 # create a new dataset from original data for job title
 jobs_lm = jobs[['job_title','Est_Salary','Max_Salary','Min_Salary','State','City','MaxRevenue','Rating','MaxEmpSize','Industry','Sector','Type_ownership','Years_Founded','Company_Name','HQState']]
@@ -690,6 +729,16 @@ jobSalary = jobs_lm.groupby('job_title2')[['Max_Salary','Est_Salary','Min_Salary
     ['Max_Salary','Est_Salary','Min_Salary'],ascending=False)
 jobSalary['Spread']=jobSalary['Max_Salary']-jobSalary['Est_Salary']
 jobSalary=jobSalary.merge(jobCount,on='job_title2',how='left').sort_values('Count',ascending=False).head(20)
+=======
+# %%
+jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
+# %%
+jobs=jobs.drop(["Revenue"],axis=1)
+#%%
+#Checking for any null values
+jobs.isnull().sum()
+
+
 
 #%%
 #Identyfying top words
