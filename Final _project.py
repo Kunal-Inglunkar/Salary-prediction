@@ -703,6 +703,33 @@ jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
 jobs.Revenue_USD.value_counts()
 #%%
 
+
+# create a new dataset from original data for job title
+jobs_lm = jobs[['job_title','Est_Salary','Max_Salary','Min_Salary','State','City','MaxRevenue','Rating','MaxEmpSize','Industry','Sector','Type_ownership','Years_Founded','Company_Name','HQState']]
+# remove special characters and unify some word use
+jobs_lm['job_title2']= jobs_lm['job_title'].str.upper().replace(
+    [',','Â','/','\t','\n','-','AND ','&','\(','\)','WITH ','SYSTEMS','OPERATIONS','ANALYTICS','SERVICES','\[','\]','ENGINEERS','NETWORKS','GAMES','MUSICS','INSIGHTS','SOLUTIONS','JR.','MARKETS','STANDARDS','FINANCE','ENGINEERING','PRODUCTS','DEVELOPERS','SR. ','SR ','JR. ','JR '],
+    ['','',' ',' ',' ',' ','',' ',' ',' ','','SYSTEM','OPERATION','ANALYTIC','SERVICE','','','ENGINEER','NETWORK','GAME','MUSIC','INSIGHT','SOLUTION','JUNIOR','MARKET','STANDARD','FINANCIAL','ENGINEER','PRODUCT','DEVELOPER','SENIOR ','SENIOR ','JUNIOR ','JUNIOR '],regex=True)
+#%%
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(['  ','   ','    '], [' ',' ',' '],regex=True)
+
+#Unifying words
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(
+    ['BUSINESS INTELLIGENCE','INFORMATION TECHNOLOGY','QUALITY ASSURANCE','USER EXPERIENCE','USER INTERFACE','DATA WAREHOUSE','DATA ANALYST','DATA BASE','DATA QUALITY','DATA GOVERNANCE','BUSINESS ANALYST','DATA MANAGEMENT','REPORTING ANALYST','BUSINESS DATA','SYSTEM ANALYST','DATA REPORTING','QUALITY ANALYST'],
+    ['BI','IT','QA','UX','UI','DATA_WAREHOUSE','DATA_ANALYST','DATABASE','DATA_QUALITY','DATA_GOVERNANCE','BUSINESS_ANALYST','DATA_MANAGEMENT','REPORTING_ANALYST','BUSINESS_DATA','SYSTEM_ANALYST','DATA_REPORTING','QUALITY_ANALYST'],regex=True)
+
+#more unifying
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(
+    ['DATA_ANALYST JUNIOR','DATA_ANALYST SENIOR','DATA  REPORTING_ANALYST'],
+    ['JUNIOR DATA_ANALYST','SENIOR DATA_ANALYST','DATA_REPORTING_ANALYST'],regex=True)
+#%%
+jobCount=jobs_lm.groupby('job_title2')[['job_title']].count().reset_index().rename(
+    columns={'job_title':'Count'}).sort_values('Count',ascending=False)
+jobSalary = jobs_lm.groupby('job_title2')[['Max_Salary','Est_Salary','Min_Salary']].mean().sort_values(
+    ['Max_Salary','Est_Salary','Min_Salary'],ascending=False)
+jobSalary['Spread']=jobSalary['Max_Salary']-jobSalary['Est_Salary']
+jobSalary=jobSalary.merge(jobCount,on='job_title2',how='left').sort_values('Count',ascending=False).head(20)
+=======
 # %%
 jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
 # %%
@@ -710,11 +737,60 @@ jobs=jobs.drop(["Revenue"],axis=1)
 #%%
 #Checking for any null values
 jobs.isnull().sum()
-#### Pending tasks
-
-
-###simple linear regression
 
 
 
-###prediction models
+#%%
+#Identyfying top words
+ds = jobs_lm['job_title2'].str.split(expand=True).stack().value_counts().reset_index().rename(columns={'index':'TW',0:'Count'})
+DS = ds[ds['Count']>1000]
+DS
+# %%
+
+## loop for top words
+def get_keyword(x):
+   x_ = x.split(" ")
+   keywords = []
+   try:
+      for word in x_:
+         if word in np.asarray(DS['TW']):
+            keywords.append(word)
+   except:
+      return -1
+
+   return keywords
+
+
+#%%
+#keywords from each row
+jobs_lm['TW'] = jobs_lm['job_title2'].apply(lambda x: get_keyword(x))
+
+#%%
+# dummy columns by top words
+
+twdummy = pd.get_dummies(jobs_lm['TW'].apply(pd.Series).stack()).sum(level=0).replace(2,1)
+jobs_lm = jobs_lm.merge(twdummy,left_index=True,right_index=True).replace(np.nan,0)
+
+# %%
+jobs_lm.to_csv('jobs_lm.csv')
+# %%
+# running a  t-test for top words to check for correlation with salaries
+topwords = list(jobs_lm.columns)
+ttests=[]
+for word in topwords:
+    if word in set(DS['TW']):
+        ttest = stats.ttest_ind(jobs_lm[jobs_lm[word]==1]['Est_Salary'],
+                                     jobs_lm[jobs_lm[word]==0]['Est_Salary'])
+        ttests.append([word,ttest])
+
+
+ttests = pd.DataFrame(ttests,columns=['TW','R'])
+ttests['R']=ttests['R'].astype(str).replace(['Ttest_indResult\(statistic=','pvalue=','\)'],['','',''],regex=True)
+ttests['Statistic'],ttests['P-value']=ttests['R'].str.split(', ',1).str
+ttests=ttests.drop(['R'],axis=1).sort_values('P-value',ascending=True)
+ttests
+# %%
+# Selecting top words with p-value <0.1 into multiple regression model.
+ttest_pass = list(ttests[ttests['P-value'].astype(float)<0.1]['TW'])
+print(*ttest_pass,sep=' + ')
+# %%
