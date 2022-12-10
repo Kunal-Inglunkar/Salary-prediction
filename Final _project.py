@@ -29,7 +29,10 @@ jobs.head(10)
 jobs.tail(10)
 #%%
 jobs.info()
-# %
+# %%
+jobs.describe(include="all")
+
+
 # %%
 ##Data Cleaning
 from mlxtend.frequent_patterns import apriori, association_rules
@@ -389,68 +392,48 @@ for x in range(len(jobs)):
                 jobs.iloc[x,26] = float(maxRev[1])*1000000000
             elif(len(maxRev)<2):
                 jobs.iloc[x,26] = float(maxRev[0])*1000000000
-
-
-
-
-
-###############################
-
-## Extracting Skills from Job Description:
-# %%
-#python
-jobs['python'] = jobs['Job_Description'].apply(lambda x: 1 if 'python' in x.lower() else 0)
-jobs.python.value_counts()
-
-#spark 
-jobs['spark'] = jobs['Job_Description'].apply(lambda x: 1 if 'spark' in x.lower() else 0)
-jobs.spark.value_counts()
-
-#aws 
-jobs['aws'] = jobs['Job_Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
-jobs.aws.value_counts()
-
-#excel
-jobs['excel'] = jobs['Job_Description'].apply(lambda x: 1 if 'excel' in x.lower() else 0)
-jobs.excel.value_counts()
-
-#sql
-jobs['sql'] = jobs['Job_Description'].apply(lambda x: 1 if 'sql' in x.lower() else 0)
-jobs.sql.value_counts()
-
-#sas
-jobs['sas'] = jobs['Job_Description'].apply(lambda x: 1 if 'sas' in x.lower() else 0)
-jobs.sas.value_counts()
-
-#hadoop
-jobs['hadoop'] = jobs['Job_Description'].apply(lambda x: 1 if 'hadoop' in x.lower() else 0)
-jobs.hadoop.value_counts()
-
-#tableau
-jobs['tableau'] = jobs['Job_Description'].apply(lambda x: 1 if 'tableau' in x.lower() else 0)
-jobs.tableau.value_counts()
-
-#bi
-jobs['bi'] = jobs['Job_Description'].apply(lambda x: 1 if 'power bi' in x.lower() else 0)
-jobs.bi.value_counts()
-
-############
-
-
-
-
 #%%
 jobs.drop(['Salary_Estimate','Job_Description'],1,inplace = True)
 
 #%%
-#Converting float data type variables to int for ease of modelling.
+#Finding Null values 
+jobs.isnull().sum()
+#%%
+sns.distplot(jobs.Rating)
+#Replacing Rating null values with mean
+jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
+#%%
+#Replacing Headquaters,Industry,Sector null values with mode
+jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
+# %%
+jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
+jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
+# %%
+sns.distplot(jobs.Founded)
+# %%
+jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
 
-jobs['Rating']=jobs['Rating'].astype(int)
-jobs['Founded']=jobs['Founded'].astype(int)
-jobs['MaxEmpSize']=jobs['MaxEmpSize'].astype(int)
-jobs['Est_Salary']=jobs['Est_Salary'].astype(int)
-jobs['Years_Founded']=jobs['Years_Founded'].astype(int)
-jobs['MaxRevenue']=jobs['MaxRevenue'].astype(int)
+# %%
+sns.displot(jobs.MaxRevenue)
+# %%
+jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
+# %%
+sns.distplot(jobs.Years_Founded)
+# %%
+jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
+
+jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
+# %%
+jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
+# %%
+jobs.State=jobs.State.fillna(jobs.State.mode()[0])
+# %%
+jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
+# %%
+jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
+sns.distplot(jobs.MaxEmpSize)
+# %%
+jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
 
 #%%
 #### Exploring the data with visualizations
@@ -717,7 +700,6 @@ print('P-Value for Anova between Job_Domain and Est_Salary is: ', AnovaResults[1
 
 
 # %%
-###Anova Analysis to check for correlation between 2 numerical variables
 #Revenue
 CategoryGroupLists3=jobs.groupby('Revenue')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists3)
@@ -739,49 +721,17 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 #%%
-#Findind Null values 
-jobs.isnull().sum()
+#Converting float data type variables to int for ease of modelling.
+
+jobs['Rating']=jobs['Rating'].astype(int)
+jobs['Founded']=jobs['Founded'].astype(int)
+jobs['MaxEmpSize']=jobs['MaxEmpSize'].astype(int)
+jobs['Est_Salary']=jobs['Est_Salary'].astype(int)
+jobs['Years_Founded']=jobs['Years_Founded'].astype(int)
+jobs['MaxRevenue']=jobs['MaxRevenue'].astype(int)
+
+
 #%%
-sns.distplot(jobs.Rating)
-#Replacing Rating null values with mean
-jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
-#%%
-#Replacing Headquaters,Industry,Sector null values with mode
-jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
-# %%
-jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
-jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
-# %%
-sns.distplot(jobs.Founded)
-# %%
-jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
-
-# %%
-sns.displot(jobs.MaxRevenue)
-# %%
-jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
-# %%
-sns.distplot(jobs.Years_Founded)
-# %%
-jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
-
-jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
-# %%
-jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
-# %%
-jobs.State=jobs.State.fillna(jobs.State.mode()[0])
-# %%
-jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
-# %%
-jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
-sns.distplot(jobs.MaxEmpSize)
-# %%
-jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
-# %%
-jobs.Revenue_USD.value_counts()
-#%%
-
-
 # create a new dataset from original data for job title
 jobs_lm = jobs[['job_title','Est_Salary','Max_Salary','Min_Salary','State','City','MaxRevenue','Rating','MaxEmpSize','Industry','Sector','Type_ownership','Years_Founded','Company_Name','HQState']]
 # remove special characters and unify some word use
