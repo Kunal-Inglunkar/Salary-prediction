@@ -393,6 +393,16 @@ for x in range(len(jobs)):
 jobs.drop(['Salary_Estimate','Job_Description'],1,inplace = True)
 
 #%%
+#Converting float data type variables to int for ease of modelling.
+
+jobs['Rating']=jobs['Rating'].astype(int)
+jobs['Founded']=jobs['Founded'].astype(int)
+jobs['MaxEmpSize']=jobs['MaxEmpSize'].astype(int)
+jobs['Est_Salary']=jobs['Est_Salary'].astype(int)
+jobs['Years_Founded']=jobs['Years_Founded'].astype(int)
+jobs['MaxRevenue']=jobs['MaxRevenue'].astype(int)
+
+#%%
 #### Exploring the data with visualizations
 
 #%% Min, max and avg salary distribution for data scientists
@@ -623,24 +633,46 @@ plt.tight_layout()
 from scipy.stats import f_oneway
 CategoryGroupLists=jobs.groupby('Sector')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists)
-print('P-Value for Anova is: ', AnovaResults[1])
+print('P-Value for Anova between Sector and Est_Salary is: ', AnovaResults[1])
+
+#%%
+#Industry
+CategoryGroupLists2=jobs.groupby('Industry')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists2)
+print('P-Value for Anova between Industry and Est_Salary is: ', AnovaResults[1])
 
 #%%
 #State
 CategoryGroupLists2=jobs.groupby('State')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists2)
-print('P-Value for Anova is: ', AnovaResults[1])
+print('P-Value for Anova between State and Est_Salary is: ', AnovaResults[1])
 
-# %%
-#Revenue
-CategoryGroupLists3=jobs.groupby('Revenue')['Est_Salary'].apply(list)
-AnovaResults = f_oneway(*CategoryGroupLists3)
-print('P-Value for Anova is: ', AnovaResults[1])
+#%%
+#HQState
+CategoryGroupLists2=jobs.groupby('HQState')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists2)
+print('P-Value for Anova between HQ and Est_Salary is: ', AnovaResults[1])
+
 # %%
 #Company
 CategoryGroupLists4=jobs.groupby('Company_Name')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists4)
+print('P-Value for Anova between Company and Est_Salary is: ', AnovaResults[1])
+
+# %%
+# Job Domain
+CategoryGroupLists6=jobs.groupby('Job_Domain')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists6)
+print('P-Value for Anova between Job_Domain and Est_Salary is: ', AnovaResults[1])
+
+
+# %%
+###Anova Analysis to check for correlation between 2 numerical variables
+#Revenue
+CategoryGroupLists3=jobs.groupby('Revenue')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists3)
 print('P-Value for Anova is: ', AnovaResults[1])
+
 
 # %%
 #Rating
@@ -648,11 +680,7 @@ CategoryGroupLists5=jobs.groupby('Rating')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists5)
 print('P-Value for Anova is: ', AnovaResults[1])
 
-# %%
-# Job Domain
-CategoryGroupLists6=jobs.groupby('Job Domain')['Est_Salary'].apply(list)
-AnovaResults = f_oneway(*CategoryGroupLists6)
-print('P-Value for Anova is: ', AnovaResults[1])
+
 # %%
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
