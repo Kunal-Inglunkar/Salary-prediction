@@ -396,6 +396,47 @@ for x in range(len(jobs)):
                 jobs.iloc[x,26] = float(maxRev[1])*1000000000
             elif(len(maxRev)<2):
                 jobs.iloc[x,26] = float(maxRev[0])*1000000000
+                
+## Extracting Skills from Job Description:
+# %%
+#python
+jobs['python'] = jobs['Job_Description'].apply(lambda x: 1 if 'python' in x.lower() else 0)
+jobs.python.value_counts()
+
+#spark 
+jobs['spark'] = jobs['Job_Description'].apply(lambda x: 1 if 'spark' in x.lower() else 0)
+jobs.spark.value_counts()
+
+#aws 
+jobs['aws'] = jobs['Job_Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
+jobs.aws.value_counts()
+
+#excel
+jobs['excel'] = jobs['Job_Description'].apply(lambda x: 1 if 'excel' in x.lower() else 0)
+jobs.excel.value_counts()
+
+#sql
+jobs['sql'] = jobs['Job_Description'].apply(lambda x: 1 if 'sql' in x.lower() else 0)
+jobs.sql.value_counts()
+
+#sas
+jobs['sas'] = jobs['Job_Description'].apply(lambda x: 1 if 'sas' in x.lower() else 0)
+jobs.sas.value_counts()
+
+#hadoop
+jobs['hadoop'] = jobs['Job_Description'].apply(lambda x: 1 if 'hadoop' in x.lower() else 0)
+jobs.hadoop.value_counts()
+
+#tableau
+jobs['tableau'] = jobs['Job_Description'].apply(lambda x: 1 if 'tableau' in x.lower() else 0)
+jobs.tableau.value_counts()
+
+#bi
+jobs['bi'] = jobs['Job_Description'].apply(lambda x: 1 if 'power bi' in x.lower() else 0)
+jobs.bi.value_counts()
+
+############
+
 #%%
 jobs.drop(['Salary_Estimate','Job_Description'],1,inplace = True)
 
