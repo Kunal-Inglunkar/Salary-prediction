@@ -29,8 +29,12 @@ jobs.head(10)
 jobs.tail(10)
 #%%
 jobs.info()
-# %%
+# %% Checking the summary statistics of the data
 jobs.describe(include="all")
+
+# %% Checking for duplicate rows
+duplicate_rows=jobs[jobs.duplicated()]
+print(duplicate_rows.shape)
 
 
 # %%
@@ -448,7 +452,7 @@ sns.distplot(jobs['Est_Salary'], color="b")
 
 plt.xlabel("Salary ($'000)")
 plt.legend({'Min_Salary':jobs['Min_Salary'],'Max_Salary':jobs['Max_Salary'],'Est_Salary':jobs['Est_Salary']})
-plt.title("Distribution of Min, Max and Average Salary",fontsize=19)
+plt.title("Distribution of Min, Max and Avg Salary",fontsize=19)
 plt.xlim(0,210)
 plt.xticks(np.arange(0, 210, step=10))
 plt.tight_layout()
@@ -456,8 +460,19 @@ plt.show()
 
 plt.savefig('min_max_sal.png', dpi=300)
 
+#Printing the mean of min,max and avg salary
+import statistics
+mean_min_salary=statistics.mean(jobs['Min_Salary'])
+print("Mean of minimum salary:",mean_min_salary)
 
-#%% Salary/Hires by Firm
+mean_max_salary=statistics.mean(jobs['Max_Salary'])
+print("Mean of maximum salary:",mean_max_salary)
+
+mean_avg_salary=statistics.mean(jobs['Est_Salary'])
+print("Mean of average salary:",mean_avg_salary)
+
+
+#%% Salary/Hires by Companies
 df_by_firm=jobs.groupby('Company_Name')['job_title'].count().reset_index().sort_values(
     'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
 
@@ -466,10 +481,10 @@ Sal_by_firm = df_by_firm.merge(jobs,on='Company_Name',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by firms', fontsize = 16)
+plt.suptitle('Hiring and salary by Companies', fontsize = 16)
 plt.tight_layout()
 
 
@@ -482,7 +497,7 @@ Sal_by_industry = df_by_industry.merge(jobs,on='Industry',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Industry',data=Sal_by_industry,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Industry',data=Sal_by_industry, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Industry',data=Sal_by_industry, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by industry', fontsize = 16)
@@ -512,7 +527,7 @@ Sal_by_city = df_by_city.merge(jobs,on='Location',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Location',data=Sal_by_city,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Location',data=Sal_by_city, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Location',data=Sal_by_city, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by City', fontsize = 16)
@@ -527,12 +542,35 @@ Sal_by_state = df_by_state.merge(jobs,on='State',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='State',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='State',data=Sal_by_state, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='State',data=Sal_by_state, join=False,ax=ax_point, palette='Accent',
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by State', fontsize = 16)
 plt.tight_layout()
 
+#%% SMART Question Analysis
+
+# Barplot for estimated salary by state
+sns.set(rc={'figure.figsize':(12,12)})
+state_barplot=sns.barplot(x='State',y='Est_Salary',data=Sal_by_state,palette="Accent").set(title='Salary Estimate by State',xlabel="Salary ($'000)")
+
+
+#%%
+#Lineplot for Revenue vs Salary
+sns.set(rc={'figure.figsize':(6,6)})
+lineplot=sns.lineplot(x="Revenue", y="Est_Salary", data=jobs,sort= False)
+lineplot.tick_params(axis='x', rotation=90)
+plt.show()
+jobs.columns
+#%%
+#Barplot for estimated salary by industry
+sns.set(rc={'figure.figsize':(6,6)})
+sns.barplot(x='Est_Salary',y='Industry',data=Sal_by_industry,palette="Accent").set(title='Salary Estimate by Industry',xlabel="Salary ($'000)")
+
+#%%
+#Barplot for estimated salary by sector
+sns.set(rc={'figure.figsize':(6,6)})
+sns.barplot(x='Est_Salary',y='Sector',data=Sal_by_sector,palette="Accent").set(title='Salary Estimate by Sector',xlabel="Salary ($'000)")
 
 #%% Firms age
 plt.figure(figsize=(13,5))
@@ -662,6 +700,13 @@ plt.tight_layout()
 #%%
 
 ###Anova Analysis to check for correlation between numerical and categorical variables
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+model = ols('Est_Salary ~ State', data=jobs).fit()
+aov_table = sm.stats.anova_lm(model, typ=2)
+aov_table
+
 #Sector
 from scipy.stats import f_oneway
 CategoryGroupLists=jobs.groupby('Sector')['Est_Salary'].apply(list)
