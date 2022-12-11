@@ -576,15 +576,14 @@ plt.tight_layout()
 
 #%%
 # Salary/ Hires by State
-df_by_state=jobs.groupby('State')['job_title'].count().reset_index().sort_values(
+df_by_state=jobs.groupby('State_Location')['job_title'].count().reset_index().sort_values(
     'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
-Sal_by_state = df_by_state.merge(jobs,on='State',how='left')
+Sal_by_state = df_by_state.merge(jobs,on='State_Location',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='State',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='State',data=Sal_by_state, join=False,ax=ax_point, palette='Accent',
-    ylabel="",xlabel="Salary ($'000)")
+sns.barplot(x='Hires',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
+sns.pointplot(x='Est_Salary',y='State_Location',data=Sal_by_state, join=False,ax=ax_point, palette='Accent')
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by State', fontsize = 16)
 plt.tight_layout()
@@ -647,7 +646,7 @@ jobs=jobs.merge(RevCount2,on='Revenue',how='left')
 sns.set(style="whitegrid")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
-sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='tab20c').set(ylabel="",xlabel="Salary ($'000)")
+sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='Accent').set(ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring, salary and revenue by Firm', fontsize = 16)
 plt.tight_layout()
@@ -732,7 +731,7 @@ Sal_by_firm_VA_DC_MD = df_by_firm.merge(jobs_VA_DC_MD,on='Company_Name',how='lef
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm_VA_DC_MD,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm_VA_DC_MD, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm_VA_DC_MD, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by firms in VA,DC,MD', fontsize = 16)
@@ -907,4 +906,75 @@ ttests
 # Selecting top words with p-value <0.1 into multiple regression model.
 ttest_pass = list(ttests[ttests['P-value'].astype(float)<0.1]['TW'])
 print(*ttest_pass,sep=' + ')
+# %%
+# Barplot for estimated salary by state
+sns.set(rc={'figure.figsize':(14,6)})
+state_barplot=sns.barplot(x='State_Location',y='Est_Salary',data=jobs,palette="Accent")
+plt.xlabel('States')
+plt.ylabel("Salary($'000)")
+plt.xticks(rotation=90)
+plt.show()
+# %%
+####FEATURE IMPORTANCE
+
+### Converting variables into dummies 
+#%%
+jobs2= jobs
+
+##Changing states to dummies
+jobs2.State_Location.replace({'NY': 0,'NJ': 1, 'CA':2, 'IL':3, 'TX':4,
+'AZ':5, 'PA': 6, 'DE':7,'FL':8,'IN':9,'OH':10,'NC':11,'SC':12,'UT':13,
+'VA':14,'WA':15,'GA':16,'KS':17,'CO':18,'DC':19,'MD':20,'MA':21,'TN':22,
+'MI':23,'OK':24,'OR':25,'NV':26,'KY':27,'WI':28,'NM':29,'MO':30,'NE':31,
+'MN':32,'LA':33,'AK':34,'VT':35,'MS':36,'CT':37,'PR':38, 'HI':39}, inplace=True)
+
+#Changing sectors to dummies
+jobs2.Sector.replace({'Health Care':0, 'Finance': 1, 'Biotech & Pharmaceuticals':2,
+'Manufacturing':3, 'Information Technology':4, 'Insurance':5,
+'Business Services':6, 'Education':7, 'Media':8, 'Consumer Services':9,
+'Restaurants, Bars & Food Services':10, 'Retail':11, 'Accounting & Legal':12,
+'Non-Profit':13, 'Oil, Gas, Energy & Utilities':14, 'Agriculture & Forestry':15,
+'Transportation & Logistics':16, 'Aerospace & Defense':17, 'Travel & Tourism':18,
+'Construction, Repair & Maintenance':19, 'Government':20, 'Real Estate':21,
+'Telecommunications':22, 'Arts, Entertainment & Recreation':23, 'Mining & Metals':24}, inplace=True)
+
+#Changing type oewnership to dummies
+jobs2.Type_ownership.replace({'Nonprofit Organization': 0, 'Company - Private':1, 'Company - Public':2, 'Subsidiary or Business Segment':3,
+'College / University':4, 'Contract':5, 'Self-employed':6, 'Unknown':7,
+'Hospital':8, 'Government':9, 'Other Organization':10, 'School / School District':11,
+'Franchise':12, 'Private Practice / Firm':13}, inplace=True)
+#%%
+# Adding random features
+X = jobs[['Rating','Sector','MaxEmpSize','State_Location', 'MaxRevenue', 'Years_Founded']]
+y = jobs[['Est_Salary']]
+
+#%%
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.2,
+                                                    random_state=42)
+#%%
+from sklearn.preprocessing import StandardScaler
+ss = StandardScaler()
+X_train_scaled = ss.fit_transform(X_train)
+X_test_scaled = ss.transform(X_test)
+
+#%%
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+importances = pd.DataFrame(data={
+    'Attribute': X_train.columns,
+    'Importance': model.coef_[0]
+})
+importances = importances.sort_values(by='Importance', ascending=False)
+
+#%%
+plt.bar(x=importances['Attribute'], height=importances['Importance'], color='#087E8B')
+plt.title('Feature importances obtained from coefficients', size=20)
+plt.xticks(rotation='vertical')
+plt.show()
+
+
+
 # %%
