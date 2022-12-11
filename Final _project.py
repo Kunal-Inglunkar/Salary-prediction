@@ -590,10 +590,14 @@ plt.tight_layout()
 
 #%% SMART Question Analysis
 
+# %%
 # Barplot for estimated salary by state
-sns.set(rc={'figure.figsize':(12,12)})
-state_barplot=sns.barplot(x='State',y='Est_Salary',data=Sal_by_state,palette="Accent").set(title='Salary Estimate by State',xlabel="Salary ($'000)")
-
+sns.set(rc={'figure.figsize':(14,6)})
+state_barplot=sns.barplot(x='State_Location',y='Est_Salary',data=jobs,palette="Accent")
+plt.xlabel('States')
+plt.ylabel("Salary($'000)")
+plt.xticks(rotation=90)
+plt.show()
 
 #%%
 #Lineplot for Revenue vs Salary
@@ -906,14 +910,7 @@ ttests
 # Selecting top words with p-value <0.1 into multiple regression model.
 ttest_pass = list(ttests[ttests['P-value'].astype(float)<0.1]['TW'])
 print(*ttest_pass,sep=' + ')
-# %%
-# Barplot for estimated salary by state
-sns.set(rc={'figure.figsize':(14,6)})
-state_barplot=sns.barplot(x='State_Location',y='Est_Salary',data=jobs,palette="Accent")
-plt.xlabel('States')
-plt.ylabel("Salary($'000)")
-plt.xticks(rotation=90)
-plt.show()
+
 # %%
 ####FEATURE IMPORTANCE
 
