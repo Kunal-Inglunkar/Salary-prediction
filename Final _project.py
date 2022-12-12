@@ -718,11 +718,10 @@ Firm_Size_VA_DC_MD_Sal = Firm_Size_VA_DC_MD_Sal.set_index('Revenue_USD').replace
 ### Comparison between revenue and salaries and size VA,DC,MD and all 
 f, axs = plt.subplots(nrows=2,ncols=2, sharey=True,sharex=True, figsize=(13,9))
 
-fs = sns.heatmap(Firm_Size,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,0]).set(title="Number of Firms Hiring Data Analysts (US)",xlabel="",ylabel="Revenue USD")
-fsc = sns.heatmap(Firm_Size_VA_DC_MD,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,1]).set(title="Number of Firms Hiring Data Analysts (VA,DC,MD)",xlabel="",ylabel="")
-fss = sns.heatmap(Firm_Size_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,0]).set(title="Avg. Salaries of Data Analyst Hires (US)",ylabel="Revenue USD")
-fscs = sns.heatmap(Firm_Size_VA_DC_MD_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,1]).set(title="Avg. Salaries of Data Analyst Hires (VA,DC,MD)",ylabel="")
-
+fs = sns.heatmap(Firm_Size,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,0]).set(title="Number of Firms offering jobs for Data Scientist roles (US)",xlabel="",ylabel="Revenue USD")
+fsc = sns.heatmap(Firm_Size_VA_DC_MD,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,1]).set(title="Number of Firms offering jobs for Data Scientist roles(VA,DC,MD)",xlabel="",ylabel="")
+fss = sns.heatmap(Firm_Size_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,0]).set(title="Avg. Salaries of Data Scientist roles (US)",ylabel="Revenue USD")
+fscs = sns.heatmap(Firm_Size_VA_DC_MD_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,1]).set(title="Avg. Salaries of Data Scientist roles (VA,DC,MD)",ylabel="")
 plt.setp([a.get_xticklabels() for a in axs[1,:]],rotation=45,ha='right')
 plt.tight_layout()
 plt.show()
