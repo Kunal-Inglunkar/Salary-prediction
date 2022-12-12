@@ -935,7 +935,7 @@ jobs2.Sector.replace({'Health Care':0, 'Finance': 1, 'Biotech & Pharmaceuticals'
 'Construction, Repair & Maintenance':19, 'Government':20, 'Real Estate':21,
 'Telecommunications':22, 'Arts, Entertainment & Recreation':23, 'Mining & Metals':24}, inplace=True)
 
-#Changing type oewnership to dummies
+
 jobs2.Type_ownership.replace({'Nonprofit Organization': 0, 'Company - Private':1, 'Company - Public':2, 'Subsidiary or Business Segment':3,
 'College / University':4, 'Contract':5, 'Self-employed':6, 'Unknown':7,
 'Hospital':8, 'Government':9, 'Other Organization':10, 'School / School District':11,
@@ -975,3 +975,111 @@ plt.show()
 
 
 # %%
+## Modeling:
+
+
+#%%
+
+### eda
+
+#%%
+def title_simplifier(title):
+    if 'business analyst' in title.lower():
+        return 'business analyst'
+    elif 'data scientist' in title.lower():
+        return 'data scientist'
+    elif 'data engineer' in title.lower():
+        return 'data engineer'
+    elif 'data analyst' in title.lower():
+        return 'data analyst'
+    elif 'analyst' in title.lower():
+        return 'analyst'
+    elif 'machine learning' in title.lower():
+        return 'mle'
+    elif 'consultant' in title.lower():
+        return 'consultant'
+    elif 'engineer' in title.lower():
+        return 'engineer'    
+    elif 'manager' in title.lower() or 'executive' in title.lower() or 'principal' in title.lower():
+        return 'manager'
+    elif 'director' in title.lower():
+        return 'director'
+    elif 'scientist' in title.lower():
+        return 'Other Scientist'
+    else:
+        return 'other' #'na'
+    
+def seniority(title):
+    if 'sr' in title.lower() or 'senior' in title.lower() or 'sr' in title.lower() or 'lead' in title.lower() or 'principal' in title.lower() or 'manager' in title.lower() or 'manager' in title.lower() or 'executive' in title.lower() or 'director' in title.lower():
+        return 'senior'
+    elif 'junior' in title.lower() or 'jr' in title.lower() or 'jr.' in title.lower():
+        return 'jr'
+    else:
+        return 'na'
+
+#%%
+jobs['job_simp'] = jobs['job_title'].apply(title_simplifier)
+
+#%%
+print(jobs.job_simp.value_counts())
+
+#%%
+jobs['seniority'] = jobs['job_title'].apply(seniority)
+#%%
+jobs.seniority.value_counts()
+
+#%%
+jobs.isnull().sum()
+
+# %%
+df_numeric = jobs.select_dtypes(include=np.number)
+df_numeric.head()
+
+#%%
+corr = df_numeric.corr()
+corr.style.background_gradient(cmap='coolwarm')
+
+# %%
+df_numeric = df_numeric.drop(labels=['tableau', 'bi', 'Min_Salary', 'Max_Salary', 'Founded', 'MaxEmpSize', 'MaxRevenue'],axis=1) # Removing unnecesary column 
+df_numeric.head()
+
+#%%
+df_numeric.isnull().sum()
+
+#%%
+df_numeric.shape
+
+#%%
+df_categoric = jobs.select_dtypes(include = object)
+df_categoric.head()
+
+#%%
+df_categoric.Size=df_categoric.Size.fillna(df_categoric.Size.mode()[0])
+df_categoric.Revenue=df_categoric.Revenue.fillna(df_categoric.Revenue.mode()[0])
+df_categoric.Type_ownership=df_categoric.Type_ownership.fillna(df_categoric.Type_ownership.mode()[0])
+
+
+# %%
+df_categoric = df_categoric.drop(labels=['Type_ownership', 'Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
+
+#%%
+df_categoric.isnull().sum()
+# %%
+df_categoric.head()
+
+# %%
+df_categoric.shape
+# %%
+dummy_encoded_variables = pd.get_dummies(df_categoric, drop_first = True)
+dummy_encoded_variables.head()
+
+
+# %%
+dummy_encoded_variables.shape
+
+#%%
+# concatenate the numerical and dummy encoded categorical variables column-wise
+df_dummy = pd.concat([df_numeric, dummy_encoded_variables], axis=1)
+
+# display data with dummy variables
+df_dummy.head()
