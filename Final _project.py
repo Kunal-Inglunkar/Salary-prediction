@@ -13,6 +13,7 @@ from wordcloud import WordCloud,STOPWORDS
 
 
 # %%
+#Database setup
 jobs = pd.read_csv('../dataset/all_jobs.csv') # Importing dataset
 jobs.rename(columns={'Job Title': 'job_title', 'Salary Estimate': 'Salary_Estimate','Job Description': 'Job_Description','Company Name': 'Company_Name','Type of ownership':'Type_ownership','Easy Apply':'Easy_apply'}, inplace= True)
 
@@ -28,7 +29,14 @@ jobs.head(10)
 jobs.tail(10)
 #%%
 jobs.info()
-# %
+# %% Checking the summary statistics of the data
+jobs.describe(include="all")
+
+# %% Checking for duplicate rows
+duplicate_rows=jobs[jobs.duplicated()]
+print(duplicate_rows.shape)
+
+
 # %%
 ##Data Cleaning
 from mlxtend.frequent_patterns import apriori, association_rules
@@ -388,13 +396,7 @@ for x in range(len(jobs)):
                 jobs.iloc[x,26] = float(maxRev[1])*1000000000
             elif(len(maxRev)<2):
                 jobs.iloc[x,26] = float(maxRev[0])*1000000000
-
-
-
-
-
-###############################
-
+                
 ## Extracting Skills from Job Description:
 # %%
 #python
@@ -435,31 +437,83 @@ jobs.bi.value_counts()
 
 ############
 
-
-
-
 #%%
 jobs.drop(['Salary_Estimate','Job_Description'],1,inplace = True)
 
 #%%
+#Finding Null values 
+jobs.isnull().sum()
+#%%
+sns.distplot(jobs.Rating)
+#Replacing Rating null values with mean
+jobs.Rating=jobs.Rating.fillna(jobs.Rating.mean())
+#%%
+#Replacing Headquaters,Industry,Sector null values with mode
+jobs.Headquarters=jobs.Headquarters.fillna(jobs.Headquarters.mode()[0])
+# %%
+jobs.Industry=jobs.Industry.fillna(jobs.Industry.mode()[0])
+jobs.Sector=jobs.Sector.fillna(jobs.Sector.mode()[0])
+# %%
+sns.distplot(jobs.Founded)
+# %%
+jobs["Founded"] = jobs["Founded"].fillna(jobs["Founded"].median())
+
+# %%
+sns.displot(jobs.MaxRevenue)
+# %%
+jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
+# %%
+sns.distplot(jobs.Years_Founded)
+# %%
+jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
+
+jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
+# %%
+jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
+# %%
+jobs.State=jobs.State.fillna(jobs.State.mode()[0])
+# %%
+jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
+# %%
+jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
+sns.distplot(jobs.MaxEmpSize)
+# %%
+jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
+
+#%%
 #### Exploring the data with visualizations
 
-#%% Min and max salary distribution for data scientists
+#%% Min, max and avg salary distribution for data scientists
+
 plt.figure(figsize=(13,5))
 sns.set(style= 'white') #style==background
 sns.distplot(jobs['Min_Salary'], color="r")
 sns.distplot(jobs['Max_Salary'], color="g")
+sns.distplot(jobs['Est_Salary'], color="b")
 
 plt.xlabel("Salary ($'000)")
-plt.legend({'Min_Salary':jobs['Min_Salary'],'Max_Salary':jobs['Max_Salary']})
-plt.title("Distribution of Min & Max Salary",fontsize=19)
+plt.legend({'Min_Salary':jobs['Min_Salary'],'Max_Salary':jobs['Max_Salary'],'Est_Salary':jobs['Est_Salary']})
+plt.title("Distribution of Min, Max and Avg Salary",fontsize=19)
 plt.xlim(0,210)
 plt.xticks(np.arange(0, 210, step=10))
 plt.tight_layout()
 plt.show()
 
+plt.savefig('min_max_sal.png', dpi=300)
 
-#%% Salary/Hires by Firm
+#Printing the mean of min,max and avg salary
+import statistics
+mean_min_salary=statistics.mean(jobs['Min_Salary'])
+print("Mean of minimum salary:",mean_min_salary)
+
+mean_max_salary=statistics.mean(jobs['Max_Salary'])
+print("Mean of maximum salary:",mean_max_salary)
+
+mean_avg_salary=statistics.mean(jobs['Est_Salary'])
+print("Mean of average salary:",mean_avg_salary)
+
+
+#%% Salary/Hires by Companies
 df_by_firm=jobs.groupby('Company_Name')['job_title'].count().reset_index().sort_values(
     'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
 
@@ -468,10 +522,10 @@ Sal_by_firm = df_by_firm.merge(jobs,on='Company_Name',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by firms', fontsize = 16)
+plt.suptitle('Hiring and salary by Companies', fontsize = 16)
 plt.tight_layout()
 
 
@@ -484,7 +538,7 @@ Sal_by_industry = df_by_industry.merge(jobs,on='Industry',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Industry',data=Sal_by_industry,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Industry',data=Sal_by_industry, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Industry',data=Sal_by_industry, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by industry', fontsize = 16)
@@ -514,7 +568,7 @@ Sal_by_city = df_by_city.merge(jobs,on='Location',how='left')
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Location',data=Sal_by_city,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Location',data=Sal_by_city, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Location',data=Sal_by_city, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by City', fontsize = 16)
@@ -522,19 +576,45 @@ plt.tight_layout()
 
 #%%
 # Salary/ Hires by State
-df_by_state=jobs.groupby('State')['job_title'].count().reset_index().sort_values(
+df_by_state=jobs.groupby('State_Location')['job_title'].count().reset_index().sort_values(
     'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
-Sal_by_state = df_by_state.merge(jobs,on='State',how='left')
+Sal_by_state = df_by_state.merge(jobs,on='State_Location',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='State',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='State',data=Sal_by_state, join=False,ax=ax_point, palette='tab20c').set(
-    ylabel="",xlabel="Salary ($'000)")
+sns.barplot(x='Hires',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
+sns.pointplot(x='Est_Salary',y='State_Location',data=Sal_by_state, join=False,ax=ax_point, palette='Accent')
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by State', fontsize = 16)
 plt.tight_layout()
 
+#%% SMART Question Analysis
+
+# %%
+# Barplot for estimated salary by state
+sns.set(rc={'figure.figsize':(14,6)})
+state_barplot=sns.barplot(x='State_Location',y='Est_Salary',data=jobs,palette="Accent")
+plt.xlabel('States')
+plt.ylabel("Salary($'000)")
+plt.xticks(rotation=90)
+plt.show()
+
+#%%
+#Lineplot for Revenue vs Salary
+sns.set(rc={'figure.figsize':(6,6)})
+lineplot=sns.lineplot(x="Revenue", y="Est_Salary", data=jobs,sort= False)
+lineplot.tick_params(axis='x', rotation=90)
+plt.show()
+jobs.columns
+#%%
+#Barplot for estimated salary by industry
+sns.set(rc={'figure.figsize':(6,6)})
+sns.barplot(x='Est_Salary',y='Industry',data=Sal_by_industry,palette="Accent").set(title='Salary Estimate by Industry',xlabel="Salary ($'000)")
+
+#%%
+#Barplot for estimated salary by sector
+sns.set(rc={'figure.figsize':(6,6)})
+sns.barplot(x='Est_Salary',y='Sector',data=Sal_by_sector,palette="Accent").set(title='Salary Estimate by Sector',xlabel="Salary ($'000)")
 
 #%% Firms age
 plt.figure(figsize=(13,5))
@@ -570,7 +650,7 @@ jobs=jobs.merge(RevCount2,on='Revenue',how='left')
 sns.set(style="whitegrid")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
-sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='tab20c').set(ylabel="",xlabel="Salary ($'000)")
+sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='Accent').set(ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring, salary and revenue by Firm', fontsize = 16)
 plt.tight_layout()
@@ -581,7 +661,7 @@ _ = frequent_itemsets[frequent_itemsets['length'] == 1]
 _['itemsets'] = _['itemsets'].astype("unicode").str.replace('[\(\)\'\{\}]|frozenset','', regex = True)
 ax = sns.barplot(x="itemsets", y="support", data= _,palette='Accent');
 ax.set_xticklabels(ax.get_xticklabels(), rotation=90);
-ax.set(ylabel="",xlabel="Skills", title= ' Main requested skills in data analysis')
+ax.set(ylabel="Frequency",xlabel="Skills", title= ' Main requested skills in data analysis')
 
 
 ##Deep diving in Virginia, Washington DC and Maryland
@@ -592,19 +672,21 @@ jobs_VA_DC_MD
 
 #Visual Exploration
 
-#%% Min and max salary distribution for data scientists
+#%% Avg salary distribution for data scientists national and regional
 plt.figure(figsize=(13,5))
 sns.set(style= 'white') #style==background
-sns.distplot(jobs_VA_DC_MD['Min_Salary'], color="r")
-sns.distplot(jobs_VA_DC_MD['Max_Salary'], color="g")
+sns.distplot(jobs_VA_DC_MD['Est_Salary'], color="r")
+sns.distplot(jobs['Est_Salary'], color="g")
 
 plt.xlabel("Salary ($'000)")
-plt.legend({'Min_Salary':jobs_VA_DC_MD['Min_Salary'],'Max_Salary':jobs_VA_DC_MD['Max_Salary']})
-plt.title("Distribution of Min & Max Salary VA,DC,MD",fontsize=19)
+plt.legend({'Est_Salary VA_MD_DC':jobs_VA_DC_MD['Est_Salary'],'Est_Salary_all':jobs['Est_Salary']})
+plt.title("Distribution of Avg Salary in VA,DC,MD and national level",fontsize=19)
 plt.xlim(0,210)
 plt.xticks(np.arange(0, 210, step=10))
 plt.tight_layout()
 plt.show()
+plt.savefig('avg_sal.png', dpi=300)
+
 
 #%%
 #Comparison heatmap
@@ -653,7 +735,7 @@ Sal_by_firm_VA_DC_MD = df_by_firm.merge(jobs_VA_DC_MD,on='Company_Name',how='lef
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
 sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm_VA_DC_MD,ax=ax_bar, palette='Accent').set(ylabel="")
-sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm_VA_DC_MD, join=False,ax=ax_point, palette='tab20c').set(
+sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm_VA_DC_MD, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
 plt.suptitle('Hiring and salary by firms in VA,DC,MD', fontsize = 16)
@@ -662,28 +744,56 @@ plt.tight_layout()
 #%%
 
 ###Anova Analysis to check for correlation between numerical and categorical variables
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+model = ols('Est_Salary ~ State', data=jobs).fit()
+aov_table = sm.stats.anova_lm(model, typ=2)
+aov_table
+
 #Sector
 from scipy.stats import f_oneway
 CategoryGroupLists=jobs.groupby('Sector')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists)
-print('P-Value for Anova is: ', AnovaResults[1])
+print('P-Value for Anova between Sector and Est_Salary is: ', AnovaResults[1])
+
+#%%
+#Industry
+CategoryGroupLists2=jobs.groupby('Industry')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists2)
+print('P-Value for Anova between Industry and Est_Salary is: ', AnovaResults[1])
 
 #%%
 #State
 CategoryGroupLists2=jobs.groupby('State')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists2)
-print('P-Value for Anova is: ', AnovaResults[1])
+print('P-Value for Anova between State and Est_Salary is: ', AnovaResults[1])
+
+#%%
+#HQState
+CategoryGroupLists2=jobs.groupby('HQState')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists2)
+print('P-Value for Anova between HQ and Est_Salary is: ', AnovaResults[1])
+
+# %%
+#Company
+CategoryGroupLists4=jobs.groupby('Company_Name')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists4)
+print('P-Value for Anova between Company and Est_Salary is: ', AnovaResults[1])
+
+# %%
+# Job Domain
+CategoryGroupLists6=jobs.groupby('Job_Domain')['Est_Salary'].apply(list)
+AnovaResults = f_oneway(*CategoryGroupLists6)
+print('P-Value for Anova between Job_Domain and Est_Salary is: ', AnovaResults[1])
+
 
 # %%
 #Revenue
 CategoryGroupLists3=jobs.groupby('Revenue')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists3)
 print('P-Value for Anova is: ', AnovaResults[1])
-# %%
-#Company
-CategoryGroupLists4=jobs.groupby('Company_Name')['Est_Salary'].apply(list)
-AnovaResults = f_oneway(*CategoryGroupLists4)
-print('P-Value for Anova is: ', AnovaResults[1])
+
 
 # %%
 #Rating
@@ -691,11 +801,7 @@ CategoryGroupLists5=jobs.groupby('Rating')['Est_Salary'].apply(list)
 AnovaResults = f_oneway(*CategoryGroupLists5)
 print('P-Value for Anova is: ', AnovaResults[1])
 
-# %%
-# Job Domain
-CategoryGroupLists6=jobs.groupby('Job Domain')['Est_Salary'].apply(list)
-AnovaResults = f_oneway(*CategoryGroupLists6)
-print('P-Value for Anova is: ', AnovaResults[1])
+
 # %%
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
@@ -703,17 +809,61 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
+#%%
+#Converting float data type variables to int for ease of modelling.
 
-#### Pending tasks
+jobs['Rating']=jobs['Rating'].astype(int)
+jobs['Founded']=jobs['Founded'].astype(int)
+jobs['MaxEmpSize']=jobs['MaxEmpSize'].astype(int)
+jobs['Est_Salary']=jobs['Est_Salary'].astype(int)
+jobs['Years_Founded']=jobs['Years_Founded'].astype(int)
+jobs['MaxRevenue']=jobs['MaxRevenue'].astype(int)
 
 
-###simple linear regression
+#%%
+# create a new dataset from original data for job title
+jobs_lm = jobs[['job_title','Est_Salary','Max_Salary','Min_Salary','State','City','MaxRevenue','Rating','MaxEmpSize','Industry','Sector','Type_ownership','Years_Founded','Company_Name','HQState']]
+# remove special characters and unify some word use
+jobs_lm['job_title2']= jobs_lm['job_title'].str.upper().replace(
+    [',','Â','/','\t','\n','-','AND ','&','\(','\)','WITH ','SYSTEMS','OPERATIONS','ANALYTICS','SERVICES','\[','\]','ENGINEERS','NETWORKS','GAMES','MUSICS','INSIGHTS','SOLUTIONS','JR.','MARKETS','STANDARDS','FINANCE','ENGINEERING','PRODUCTS','DEVELOPERS','SR. ','SR ','JR. ','JR '],
+    ['','',' ',' ',' ',' ','',' ',' ',' ','','SYSTEM','OPERATION','ANALYTIC','SERVICE','','','ENGINEER','NETWORK','GAME','MUSIC','INSIGHT','SOLUTION','JUNIOR','MARKET','STANDARD','FINANCIAL','ENGINEER','PRODUCT','DEVELOPER','SENIOR ','SENIOR ','JUNIOR ','JUNIOR '],regex=True)
+#%%
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(['  ','   ','    '], [' ',' ',' '],regex=True)
 
+#Unifying words
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(
+    ['BUSINESS INTELLIGENCE','INFORMATION TECHNOLOGY','QUALITY ASSURANCE','USER EXPERIENCE','USER INTERFACE','DATA WAREHOUSE','DATA ANALYST','DATA BASE','DATA QUALITY','DATA GOVERNANCE','BUSINESS ANALYST','DATA MANAGEMENT','REPORTING ANALYST','BUSINESS DATA','SYSTEM ANALYST','DATA REPORTING','QUALITY ANALYST'],
+    ['BI','IT','QA','UX','UI','DATA_WAREHOUSE','DATA_ANALYST','DATABASE','DATA_QUALITY','DATA_GOVERNANCE','BUSINESS_ANALYST','DATA_MANAGEMENT','REPORTING_ANALYST','BUSINESS_DATA','SYSTEM_ANALYST','DATA_REPORTING','QUALITY_ANALYST'],regex=True)
 
-
-<<<<<<< Updated upstream
-###prediction models
+#more unifying
+jobs_lm['job_title2']= jobs_lm['job_title2'].str.upper().replace(
+    ['DATA_ANALYST JUNIOR','DATA_ANALYST SENIOR','DATA  REPORTING_ANALYST'],
+    ['JUNIOR DATA_ANALYST','SENIOR DATA_ANALYST','DATA_REPORTING_ANALYST'],regex=True)
+#%%
+jobCount=jobs_lm.groupby('job_title2')[['job_title']].count().reset_index().rename(
+    columns={'job_title':'Count'}).sort_values('Count',ascending=False)
+jobSalary = jobs_lm.groupby('job_title2')[['Max_Salary','Est_Salary','Min_Salary']].mean().sort_values(
+    ['Max_Salary','Est_Salary','Min_Salary'],ascending=False)
+jobSalary['Spread']=jobSalary['Max_Salary']-jobSalary['Est_Salary']
+jobSalary=jobSalary.merge(jobCount,on='job_title2',how='left').sort_values('Count',ascending=False).head(20)
 =======
+# %%
+jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
+# %%
+jobs=jobs.drop(["Revenue"],axis=1)
+#%%
+#Checking for any null values
+jobs.isnull().sum()
+
+
+
+#%%
+#Identyfying top words
+ds = jobs_lm['job_title2'].str.split(expand=True).stack().value_counts().reset_index().rename(columns={'index':'TW',0:'Count'})
+DS = ds[ds['Count']>1000]
+DS
+# %%
+
 ## loop for top words
 def get_keyword(x):
    x_ = x.split(" ")
@@ -785,7 +935,7 @@ jobs2.Sector.replace({'Health Care':0, 'Finance': 1, 'Biotech & Pharmaceuticals'
 'Construction, Repair & Maintenance':19, 'Government':20, 'Real Estate':21,
 'Telecommunications':22, 'Arts, Entertainment & Recreation':23, 'Mining & Metals':24}, inplace=True)
 
-#Changing type ownership to dummies
+
 jobs2.Type_ownership.replace({'Nonprofit Organization': 0, 'Company - Private':1, 'Company - Public':2, 'Subsidiary or Business Segment':3,
 'College / University':4, 'Contract':5, 'Self-employed':6, 'Unknown':7,
 'Hospital':8, 'Government':9, 'Other Organization':10, 'School / School District':11,
@@ -825,7 +975,6 @@ plt.show()
 
 
 # %%
-
 ## Modeling:
 
 
@@ -934,5 +1083,3 @@ df_dummy = pd.concat([df_numeric, dummy_encoded_variables], axis=1)
 
 # display data with dummy variables
 df_dummy.head()
-
->>>>>>> Stashed changes
