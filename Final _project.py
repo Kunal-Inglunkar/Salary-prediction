@@ -93,6 +93,7 @@ jobs.dropna(subset=['Salary_Estimate'], inplace=True) # Removing empty rows
 #Splitting information from Job domain and role
 jobs['Job Domain'] = jobs['job_title'].apply(lambda x: re.search(r',.*',x).group().replace(',','') if(bool(re.search(r',.*',x))) else x )
 jobs['Job Role'] = jobs['job_title'].apply(lambda x: re.search(r'.*,',x).group().replace(',','') if(bool(re.search(r',.*',x))) else x )
+jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 #%%
 jobs = jobs.assign(newCol=jobs['Salary_Estimate'].str.extract('(Per Hour)')) # Identifying per hour entries
@@ -805,7 +806,6 @@ print('P-Value for Anova is: ', AnovaResults[1])
 # %%
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
-jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
@@ -846,11 +846,10 @@ jobSalary = jobs_lm.groupby('job_title2')[['Max_Salary','Est_Salary','Min_Salary
     ['Max_Salary','Est_Salary','Min_Salary'],ascending=False)
 jobSalary['Spread']=jobSalary['Max_Salary']-jobSalary['Est_Salary']
 jobSalary=jobSalary.merge(jobCount,on='job_title2',how='left').sort_values('Count',ascending=False).head(20)
-=======
+
 # %%
 jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
-# %%
-jobs=jobs.drop(["Revenue"],axis=1)
+
 #%%
 #Checking for any null values
 jobs.isnull().sum()
@@ -891,6 +890,7 @@ jobs_lm = jobs_lm.merge(twdummy,left_index=True,right_index=True).replace(np.nan
 # %%
 jobs_lm.to_csv('jobs_lm.csv')
 # %%
+from scipy import stats
 # running a  t-test for top words to check for correlation with salaries
 topwords = list(jobs_lm.columns)
 ttests=[]
@@ -1056,11 +1056,9 @@ df_categoric.head()
 #%%
 df_categoric.Size=df_categoric.Size.fillna(df_categoric.Size.mode()[0])
 df_categoric.Revenue=df_categoric.Revenue.fillna(df_categoric.Revenue.mode()[0])
-df_categoric.Type_ownership=df_categoric.Type_ownership.fillna(df_categoric.Type_ownership.mode()[0])
-
 
 # %%
-df_categoric = df_categoric.drop(labels=['Type_ownership', 'Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
+df_categoric = df_categoric.drop(labels=['Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
 
 #%%
 df_categoric.isnull().sum()
@@ -1483,4 +1481,5 @@ xg_full_metrics = pd.Series({'Model': "XGBoost",
 result_tabulation = result_tabulation.append(xg_full_metrics, ignore_index = True)
 
 # print the result table
+#%%
 result_tabulation
