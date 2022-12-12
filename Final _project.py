@@ -711,4 +711,228 @@ jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
+<<<<<<< Updated upstream
 ###prediction models
+=======
+## loop for top words
+def get_keyword(x):
+   x_ = x.split(" ")
+   keywords = []
+   try:
+      for word in x_:
+         if word in np.asarray(DS['TW']):
+            keywords.append(word)
+   except:
+      return -1
+
+   return keywords
+
+
+#%%
+#keywords from each row
+jobs_lm['TW'] = jobs_lm['job_title2'].apply(lambda x: get_keyword(x))
+
+#%%
+# dummy columns by top words
+
+twdummy = pd.get_dummies(jobs_lm['TW'].apply(pd.Series).stack()).sum(level=0).replace(2,1)
+jobs_lm = jobs_lm.merge(twdummy,left_index=True,right_index=True).replace(np.nan,0)
+
+# %%
+jobs_lm.to_csv('jobs_lm.csv')
+# %%
+# running a  t-test for top words to check for correlation with salaries
+topwords = list(jobs_lm.columns)
+ttests=[]
+for word in topwords:
+    if word in set(DS['TW']):
+        ttest = stats.ttest_ind(jobs_lm[jobs_lm[word]==1]['Est_Salary'],
+                                     jobs_lm[jobs_lm[word]==0]['Est_Salary'])
+        ttests.append([word,ttest])
+
+
+ttests = pd.DataFrame(ttests,columns=['TW','R'])
+ttests['R']=ttests['R'].astype(str).replace(['Ttest_indResult\(statistic=','pvalue=','\)'],['','',''],regex=True)
+ttests['Statistic'],ttests['P-value']=ttests['R'].str.split(', ',1).str
+ttests=ttests.drop(['R'],axis=1).sort_values('P-value',ascending=True)
+ttests
+# %%
+# Selecting top words with p-value <0.1 into multiple regression model.
+ttest_pass = list(ttests[ttests['P-value'].astype(float)<0.1]['TW'])
+print(*ttest_pass,sep=' + ')
+
+# %%
+####FEATURE IMPORTANCE
+
+### Converting variables into dummies 
+#%%
+jobs2= jobs
+
+##Changing states to dummies
+jobs2.State_Location.replace({'NY': 0,'NJ': 1, 'CA':2, 'IL':3, 'TX':4,
+'AZ':5, 'PA': 6, 'DE':7,'FL':8,'IN':9,'OH':10,'NC':11,'SC':12,'UT':13,
+'VA':14,'WA':15,'GA':16,'KS':17,'CO':18,'DC':19,'MD':20,'MA':21,'TN':22,
+'MI':23,'OK':24,'OR':25,'NV':26,'KY':27,'WI':28,'NM':29,'MO':30,'NE':31,
+'MN':32,'LA':33,'AK':34,'VT':35,'MS':36,'CT':37,'PR':38, 'HI':39}, inplace=True)
+
+#Changing sectors to dummies
+jobs2.Sector.replace({'Health Care':0, 'Finance': 1, 'Biotech & Pharmaceuticals':2,
+'Manufacturing':3, 'Information Technology':4, 'Insurance':5,
+'Business Services':6, 'Education':7, 'Media':8, 'Consumer Services':9,
+'Restaurants, Bars & Food Services':10, 'Retail':11, 'Accounting & Legal':12,
+'Non-Profit':13, 'Oil, Gas, Energy & Utilities':14, 'Agriculture & Forestry':15,
+'Transportation & Logistics':16, 'Aerospace & Defense':17, 'Travel & Tourism':18,
+'Construction, Repair & Maintenance':19, 'Government':20, 'Real Estate':21,
+'Telecommunications':22, 'Arts, Entertainment & Recreation':23, 'Mining & Metals':24}, inplace=True)
+
+#Changing type ownership to dummies
+jobs2.Type_ownership.replace({'Nonprofit Organization': 0, 'Company - Private':1, 'Company - Public':2, 'Subsidiary or Business Segment':3,
+'College / University':4, 'Contract':5, 'Self-employed':6, 'Unknown':7,
+'Hospital':8, 'Government':9, 'Other Organization':10, 'School / School District':11,
+'Franchise':12, 'Private Practice / Firm':13}, inplace=True)
+#%%
+# Adding random features
+X = jobs[['Rating','Sector','MaxEmpSize','State_Location', 'MaxRevenue', 'Years_Founded']]
+y = jobs[['Est_Salary']]
+
+#%%
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.2,
+                                                    random_state=42)
+#%%
+from sklearn.preprocessing import StandardScaler
+ss = StandardScaler()
+X_train_scaled = ss.fit_transform(X_train)
+X_test_scaled = ss.transform(X_test)
+
+#%%
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+importances = pd.DataFrame(data={
+    'Attribute': X_train.columns,
+    'Importance': model.coef_[0]
+})
+importances = importances.sort_values(by='Importance', ascending=False)
+
+#%%
+plt.bar(x=importances['Attribute'], height=importances['Importance'], color='#087E8B')
+plt.title('Feature importances obtained from coefficients', size=20)
+plt.xticks(rotation='vertical')
+plt.show()
+
+
+
+# %%
+
+## Modeling:
+
+
+#%%
+
+### eda
+
+#%%
+def title_simplifier(title):
+    if 'business analyst' in title.lower():
+        return 'business analyst'
+    elif 'data scientist' in title.lower():
+        return 'data scientist'
+    elif 'data engineer' in title.lower():
+        return 'data engineer'
+    elif 'data analyst' in title.lower():
+        return 'data analyst'
+    elif 'analyst' in title.lower():
+        return 'analyst'
+    elif 'machine learning' in title.lower():
+        return 'mle'
+    elif 'consultant' in title.lower():
+        return 'consultant'
+    elif 'engineer' in title.lower():
+        return 'engineer'    
+    elif 'manager' in title.lower() or 'executive' in title.lower() or 'principal' in title.lower():
+        return 'manager'
+    elif 'director' in title.lower():
+        return 'director'
+    elif 'scientist' in title.lower():
+        return 'Other Scientist'
+    else:
+        return 'other' #'na'
+    
+def seniority(title):
+    if 'sr' in title.lower() or 'senior' in title.lower() or 'sr' in title.lower() or 'lead' in title.lower() or 'principal' in title.lower() or 'manager' in title.lower() or 'manager' in title.lower() or 'executive' in title.lower() or 'director' in title.lower():
+        return 'senior'
+    elif 'junior' in title.lower() or 'jr' in title.lower() or 'jr.' in title.lower():
+        return 'jr'
+    else:
+        return 'na'
+
+#%%
+jobs['job_simp'] = jobs['job_title'].apply(title_simplifier)
+
+#%%
+print(jobs.job_simp.value_counts())
+
+#%%
+jobs['seniority'] = jobs['job_title'].apply(seniority)
+#%%
+jobs.seniority.value_counts()
+
+#%%
+jobs.isnull().sum()
+
+# %%
+df_numeric = jobs.select_dtypes(include=np.number)
+df_numeric.head()
+
+#%%
+corr = df_numeric.corr()
+corr.style.background_gradient(cmap='coolwarm')
+
+# %%
+df_numeric = df_numeric.drop(labels=['tableau', 'bi', 'Min_Salary', 'Max_Salary', 'Founded', 'MaxEmpSize', 'MaxRevenue'],axis=1) # Removing unnecesary column 
+df_numeric.head()
+
+#%%
+df_numeric.isnull().sum()
+
+#%%
+df_numeric.shape
+
+#%%
+df_categoric = jobs.select_dtypes(include = object)
+df_categoric.head()
+
+#%%
+df_categoric.Size=df_categoric.Size.fillna(df_categoric.Size.mode()[0])
+df_categoric.Revenue=df_categoric.Revenue.fillna(df_categoric.Revenue.mode()[0])
+df_categoric.Type_ownership=df_categoric.Type_ownership.fillna(df_categoric.Type_ownership.mode()[0])
+
+
+# %%
+df_categoric = df_categoric.drop(labels=['Type_ownership', 'Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
+
+#%%
+df_categoric.isnull().sum()
+# %%
+df_categoric.head()
+
+# %%
+df_categoric.shape
+# %%
+dummy_encoded_variables = pd.get_dummies(df_categoric, drop_first = True)
+dummy_encoded_variables.head()
+
+
+# %%
+dummy_encoded_variables.shape
+
+#%%
+# concatenate the numerical and dummy encoded categorical variables column-wise
+df_dummy = pd.concat([df_numeric, dummy_encoded_variables], axis=1)
+
+# display data with dummy variables
+df_dummy.head()
+
+>>>>>>> Stashed changes
