@@ -516,17 +516,17 @@ print("Mean of average salary:",mean_avg_salary)
 
 #%% Salary/Hires by Companies
 df_by_firm=jobs.groupby('Company_Name')['job_title'].count().reset_index().sort_values(
-    'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
+    'job_title',ascending=False).head(20).rename(columns={'job_title':'Jobs'})
 
 Sal_by_firm = df_by_firm.merge(jobs,on='Company_Name',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
+sns.barplot(x='Jobs',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by Companies', fontsize = 16)
+plt.suptitle('Jobs and salary by Companies', fontsize = 16)
 plt.tight_layout()
 
 
@@ -583,10 +583,10 @@ Sal_by_state = df_by_state.merge(jobs,on='State_Location',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
+sns.barplot(x='Jobs',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='State_Location',data=Sal_by_state, join=False,ax=ax_point, palette='Accent')
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by State', fontsize = 16)
+plt.suptitle('Jobs and salary by State', fontsize = 16)
 plt.tight_layout()
 
 #%% SMART Question Analysis
@@ -639,8 +639,8 @@ plt.show()
 
 
 #%% Hires and Salary Estimate Revenue
-RevCount = jobs.groupby('Revenue')[['job_title']].count().reset_index().rename(columns={'job_title':'Hires'}).sort_values(
-    'Hires', ascending=False).reset_index(drop=True)
+RevCount = jobs.groupby('Revenue')[['job_title']].count().reset_index().rename(columns={'job_title':'Jobs'}).sort_values(
+    'Jobs', ascending=False).reset_index(drop=True)
 
 RevCount["Revenue_USD"]=['Unknown','10+ billion','100-500 million','50-100 million','2-5 billion','10-25 million','25-50 million','1-5 million','5-10 billion','<1 million','1-2 billion','0.5-1 billion','5-10 million']
 RevCount2 = RevCount[['Revenue','Revenue_USD']]
@@ -650,10 +650,10 @@ jobs=jobs.merge(RevCount2,on='Revenue',how='left')
 
 sns.set(style="whitegrid")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
+sns.barplot(x='Jobs',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
 sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='Accent').set(ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring, salary and revenue by Firm', fontsize = 16)
+plt.suptitle('Jobs and Salary by Revenue', fontsize = 16)
 plt.tight_layout()
 
 #%%
