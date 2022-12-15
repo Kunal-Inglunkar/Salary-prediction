@@ -526,7 +526,7 @@ sns.barplot(x='Jobs',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accen
 sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Jobs and salary by Companies', fontsize = 16)
+plt.suptitle('Jobs and Estimated Salary offered by Companies', fontsize = 16)
 plt.tight_layout()
 
 
