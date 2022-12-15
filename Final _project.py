@@ -662,7 +662,7 @@ _ = frequent_itemsets[frequent_itemsets['length'] == 1]
 _['itemsets'] = _['itemsets'].astype("unicode").str.replace('[\(\)\'\{\}]|frozenset','', regex = True)
 ax = sns.barplot(x="itemsets", y="support", data= _,palette='Accent');
 ax.set_xticklabels(ax.get_xticklabels(), rotation=90);
-ax.set(ylabel="Frequency",xlabel="Skills", title= ' Main requested skills in data analysis')
+ax.set(ylabel="Frequency",xlabel="Skills", title= ' Main requested skills in data science jobs')
 
 
 ##Deep diving in Virginia, Washington DC and Maryland
