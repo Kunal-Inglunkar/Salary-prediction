@@ -526,7 +526,7 @@ sns.barplot(x='Jobs',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accen
 sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Jobs and Estimated Salary offered by Companies', fontsize = 16)
+plt.suptitle('Jobs and salary by Companies', fontsize = 16)
 plt.tight_layout()
 
 
@@ -662,7 +662,7 @@ _ = frequent_itemsets[frequent_itemsets['length'] == 1]
 _['itemsets'] = _['itemsets'].astype("unicode").str.replace('[\(\)\'\{\}]|frozenset','', regex = True)
 ax = sns.barplot(x="itemsets", y="support", data= _,palette='Accent');
 ax.set_xticklabels(ax.get_xticklabels(), rotation=90);
-ax.set(ylabel="Frequency",xlabel="Skills", title= ' Main requested skills in data science jobs')
+ax.set(ylabel="Frequency",xlabel="Skills", title= ' Main requested skills in data analysis')
 
 
 ##Deep diving in Virginia, Washington DC and Maryland
@@ -1479,6 +1479,6 @@ xg_full_metrics = pd.Series({'Model': "XGBoost",
 # python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(xg_full_metrics, ignore_index = True)
 
-# print the result table
+# print the final model evaluation table
 #%%
 result_tabulation
