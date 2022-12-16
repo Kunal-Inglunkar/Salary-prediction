@@ -471,6 +471,7 @@ jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].media
 
 jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
 # %%
+#Replacing null values in Size,State,HQcity and HQStae with mode 
 jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
 # %%
 jobs.State=jobs.State.fillna(jobs.State.mode()[0])
@@ -480,6 +481,7 @@ jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
 jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
 sns.distplot(jobs.MaxEmpSize)
 # %%
+#Replacing MaxEmpSize with median
 jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
 
 #%%
@@ -946,6 +948,7 @@ X = jobs[['Rating','Sector','MaxEmpSize','State_Location', 'MaxRevenue', 'Years_
 y = jobs[['Est_Salary']]
 
 #%%
+#Splitng dataset in 80:20 ratio 80 train and 20 test
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.2,
                                                     random_state=42)
@@ -1032,6 +1035,7 @@ jobs.seniority.value_counts()
 jobs.isnull().sum()
 
 # %%
+#Creating dataframe of only numeric variable
 df_numeric = jobs.select_dtypes(include=np.number)
 df_numeric.head()
 
@@ -1050,6 +1054,7 @@ df_numeric.isnull().sum()
 df_numeric.shape
 
 #%%
+#creating dataframe of only categorical variable
 df_categoric = jobs.select_dtypes(include = object)
 df_categoric.head()
 
@@ -1068,6 +1073,7 @@ df_categoric.head()
 # %%
 df_categoric.shape
 # %%
+#One hot encoding on categorical data 
 dummy_encoded_variables = pd.get_dummies(df_categoric, drop_first = True)
 dummy_encoded_variables.head()
 
@@ -1090,6 +1096,7 @@ df_dummy = sm.add_constant(df_dummy)
 
 # separate the independent and dependent variables
 # drop(): drops the specified columns
+#Droping the independent variable
 X = df_dummy.drop(["Est_Salary"], axis = 1)
 
 # extract the target variable from the data set
@@ -1104,7 +1111,7 @@ y.shape
 #importing sklearn for split data
 from sklearn.model_selection import train_test_split
 
-# split data into train data and test data 
+# split data into 80:20 ratio 80 train data and  20 test data 
 # what proportion of data should be included in test data is passed using 'test_size'
 # set 'random_state' to get the same data each time the code is executed 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 10)
@@ -1142,6 +1149,7 @@ linreg_full_predictions
 
 
 #%%
+#Target variable
 actual_salary = y_test["Est_Salary"]
 actual_salary
 #%%
@@ -1155,13 +1163,13 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import random
 
 #%%
-# calculate rmse using rmse()
+# calculate rmse for ols model using rmse()
 linreg_full_rmse = rmse(actual_salary,linreg_full_predictions )
 
-# calculate R-squared using rsquared
+# calculate R-squared for ols model using rsquared
 linreg_full_rsquared = linreg_full.rsquared
 
-# calculate Adjusted R-Squared using rsquared_adj
+# calculate Adjusted R-Squared for ols model using rsquared_adj
 linreg_full_rsquared_adj = linreg_full.rsquared_adj 
 
 #%%
@@ -1201,7 +1209,8 @@ from sklearn.model_selection import GridSearchCV
 # %%
 # instantiate the 'DecisionTreeRegressor' object using 'mse' criterion
 # pass the 'random_state' to obtain the same samples for each time you run the code
-decision_tree = DecisionTreeRegressor(criterion = 'mse', random_state = 10) #Max depth D.Tree gets formed
+decision_tree = DecisionTreeRegressor(criterion = 'mse', random_state = 10) 
+#Max depth D.Tree gets formed
 
 # fit the model using fit() on train data
 decision_tree_model = decision_tree.fit(X_train, y_train) #fit() method is defined inside the class 'DecisionTreeClassifier'
@@ -1255,6 +1264,7 @@ rf_reg.fit(X_train, y_train)
 y_pred_RF = rf_reg.predict(X_test)
 
 #%%
+#Calculating MAE,MSE,RMSE for random forest model
 # Calculate MAE
 rf_reg_MAE = metrics.mean_absolute_error(y_test, y_pred_RF)
 print('Mean Absolute Error (MAE):', rf_reg_MAE)
