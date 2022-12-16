@@ -1448,6 +1448,8 @@ xg_preds = xg_reg.predict(X_test)
 
 
 #%%
+#Model evaluation for XGBoost model
+
 # Calculate MAE
 xg_reg_MAE = metrics.mean_absolute_error(y_test, xg_preds)
 print('Mean Absolute Error (MAE):', xg_reg_MAE)
@@ -1473,7 +1475,7 @@ n = len(X_train)
 
 # No of independent variables
 p = len(X_train.columns) 
-
+#Calculating RMSE,Adj.R-Square for xgboost
 #Compute Adj-R-Squared
 Adj_r_squared_xg = 1 - (1-r_squared_xg)*(n-1)/(n-p-1)
 # Compute RMSE
