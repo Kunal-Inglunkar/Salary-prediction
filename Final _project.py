@@ -466,6 +466,7 @@ jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
 # %%
 sns.distplot(jobs.Years_Founded)
 # %%
+#Replacing null values in Years_founded with median and Type_ownership with mode
 jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
 
 jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
@@ -1482,3 +1483,5 @@ result_tabulation = result_tabulation.append(xg_full_metrics, ignore_index = Tru
 # print the final model evaluation table
 #%%
 result_tabulation
+
+# %%
