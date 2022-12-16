@@ -1350,7 +1350,8 @@ print("The shape of y2_train is:",y2_train.shape)
 print("The shape of y2_test is:",y2_test.shape)
 #%%
 # build the model
-meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10)) #Similar to a random forest, just that the DT's are having all the features to split on
+meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10)) 
+#Similar to a random forest, just that the DT's are having all the features to split on
 
 # fit the model
 meta_estimator.fit(X2_train, y2_train) 
@@ -1437,6 +1438,7 @@ result_tabulation
 import xgboost as xgb
 
 #%%
+
 xg_reg = xgb.XGBRegressor(objective ='reg:linear', colsample_bytree = 0.3, learning_rate = 0.1,
                 max_depth = 15, alpha = 10, n_estimators = 150)
 
