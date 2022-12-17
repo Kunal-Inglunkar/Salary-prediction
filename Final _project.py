@@ -95,6 +95,7 @@ jobs.dropna(subset=['Salary_Estimate'], inplace=True) # Removing empty rows
 #Splitting information from Job domain and role
 jobs['Job Domain'] = jobs['job_title'].apply(lambda x: re.search(r',.*',x).group().replace(',','') if(bool(re.search(r',.*',x))) else x )
 jobs['Job Role'] = jobs['job_title'].apply(lambda x: re.search(r'.*,',x).group().replace(',','') if(bool(re.search(r',.*',x))) else x )
+jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 #%%
 jobs = jobs.assign(newCol=jobs['Salary_Estimate'].str.extract('(Per Hour)')) # Identifying per hour entries
@@ -467,10 +468,12 @@ jobs["MaxRevenue"] = jobs["MaxRevenue"].fillna(jobs["MaxRevenue"].median())
 # %%
 sns.distplot(jobs.Years_Founded)
 # %%
+#Replacing null values in Years_founded with median and Type_ownership with mode
 jobs["Years_Founded"] = jobs["Years_Founded"].fillna(jobs["Years_Founded"].median())
 
 jobs.Type_ownership=jobs.Type_ownership.fillna(jobs.Type_ownership.mode()[0])
 # %%
+#Replacing null values in Size,State,HQcity and HQStae with mode 
 jobs.Size=jobs.Size.fillna(jobs.Size.mode()[0])
 # %%
 jobs.State=jobs.State.fillna(jobs.State.mode()[0])
@@ -480,6 +483,7 @@ jobs.HQCity=jobs.HQCity.fillna(jobs.HQCity.mode()[0])
 jobs.HQState=jobs.HQState.fillna(jobs.HQState.mode()[0])
 sns.distplot(jobs.MaxEmpSize)
 # %%
+#Replacing MaxEmpSize with median
 jobs["MaxEmpSize"] = jobs["MaxEmpSize"].fillna(jobs["MaxEmpSize"].median())
 
 #%%
@@ -517,17 +521,17 @@ print("Mean of average salary:",mean_avg_salary)
 
 #%% Salary/Hires by Companies
 df_by_firm=jobs.groupby('Company_Name')['job_title'].count().reset_index().sort_values(
-    'job_title',ascending=False).head(20).rename(columns={'job_title':'Hires'})
+    'job_title',ascending=False).head(20).rename(columns={'job_title':'Jobs'})
 
 Sal_by_firm = df_by_firm.merge(jobs,on='Company_Name',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
+sns.barplot(x='Jobs',y='Company_Name',data=Sal_by_firm,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by Companies', fontsize = 16)
+plt.suptitle('Jobs and salary by Companies', fontsize = 16)
 plt.tight_layout()
 
 
@@ -584,15 +588,11 @@ Sal_by_state = df_by_state.merge(jobs,on='State_Location',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-<<<<<<< Updated upstream
-sns.barplot(x='Hires',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
-=======
 # error here
-#sns.barplot(x='job_title',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
->>>>>>> Stashed changes
+sns.barplot(x='Jobs',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='State_Location',data=Sal_by_state, join=False,ax=ax_point, palette='Accent')
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring and salary by State', fontsize = 16)
+plt.suptitle('Jobs and salary by State', fontsize = 16)
 plt.tight_layout()
 
 #%% SMART Question Analysis
@@ -645,8 +645,8 @@ plt.show()
 
 
 #%% Hires and Salary Estimate Revenue
-RevCount = jobs.groupby('Revenue')[['job_title']].count().reset_index().rename(columns={'job_title':'Hires'}).sort_values(
-    'Hires', ascending=False).reset_index(drop=True)
+RevCount = jobs.groupby('Revenue')[['job_title']].count().reset_index().rename(columns={'job_title':'Jobs'}).sort_values(
+    'Jobs', ascending=False).reset_index(drop=True)
 
 RevCount["Revenue_USD"]=['Unknown','10+ billion','100-500 million','50-100 million','2-5 billion','10-25 million','25-50 million','1-5 million','5-10 billion','<1 million','1-2 billion','0.5-1 billion','5-10 million']
 RevCount2 = RevCount[['Revenue','Revenue_USD']]
@@ -656,10 +656,10 @@ jobs=jobs.merge(RevCount2,on='Revenue',how='left')
 
 sns.set(style="whitegrid")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
+sns.barplot(x='Jobs',y='Revenue_USD',data=RevCount,ax=ax_bar, palette='Accent').set(ylabel='Revenue in USD',xlabel="Hires")
 sns.pointplot(x='Est_Salary',y='Revenue_USD',data=RevCount, join=False,ax=ax_point, palette='Accent').set(ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
-plt.suptitle('Hiring, salary and revenue by Firm', fontsize = 16)
+plt.suptitle('Jobs and Salary by Revenue', fontsize = 16)
 plt.tight_layout()
 
 #%%
@@ -724,11 +724,10 @@ Firm_Size_VA_DC_MD_Sal = Firm_Size_VA_DC_MD_Sal.set_index('Revenue_USD').replace
 ### Comparison between revenue and salaries and size VA,DC,MD and all 
 f, axs = plt.subplots(nrows=2,ncols=2, sharey=True,sharex=True, figsize=(13,9))
 
-fs = sns.heatmap(Firm_Size,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,0]).set(title="Number of Firms Hiring Data Analysts (US)",xlabel="",ylabel="Revenue USD")
-fsc = sns.heatmap(Firm_Size_VA_DC_MD,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,1]).set(title="Number of Firms Hiring Data Analysts (VA,DC,MD)",xlabel="",ylabel="")
-fss = sns.heatmap(Firm_Size_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,0]).set(title="Avg. Salaries of Data Analyst Hires (US)",ylabel="Revenue USD")
-fscs = sns.heatmap(Firm_Size_VA_DC_MD_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,1]).set(title="Avg. Salaries of Data Analyst Hires (VA,DC,MD)",ylabel="")
-
+fs = sns.heatmap(Firm_Size,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,0]).set(title="Number of Firms offering jobs for Data Scientist roles (US)",xlabel="",ylabel="Revenue USD")
+fsc = sns.heatmap(Firm_Size_VA_DC_MD,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="YlGnBu", ax=axs[0,1]).set(title="Number of Firms offering jobs for Data Scientist roles(VA,DC,MD)",xlabel="",ylabel="")
+fss = sns.heatmap(Firm_Size_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,0]).set(title="Avg. Salaries of Data Scientist roles (US)",ylabel="Revenue USD")
+fscs = sns.heatmap(Firm_Size_VA_DC_MD_Sal,annot=True,fmt='.0f',annot_kws={"size": 12},cmap="Greens",ax=axs[1,1]).set(title="Avg. Salaries of Data Scientist roles (VA,DC,MD)",ylabel="")
 plt.setp([a.get_xticklabels() for a in axs[1,:]],rotation=45,ha='right')
 plt.tight_layout()
 plt.show()
@@ -813,7 +812,6 @@ print('P-Value for Anova is: ', AnovaResults[1])
 # %%
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
-jobs.rename(columns = {'Job Domain':'Job_Domain'}, inplace = True)
 
 
 
@@ -854,11 +852,10 @@ jobSalary = jobs_lm.groupby('job_title2')[['Max_Salary','Est_Salary','Min_Salary
     ['Max_Salary','Est_Salary','Min_Salary'],ascending=False)
 jobSalary['Spread']=jobSalary['Max_Salary']-jobSalary['Est_Salary']
 jobSalary=jobSalary.merge(jobCount,on='job_title2',how='left').sort_values('Count',ascending=False).head(20)
-=======
+
 # %%
 jobs["Revenue_USD"] = jobs["Revenue_USD"].fillna(jobs["Revenue_USD"].mode()[0])
-# %%
-jobs=jobs.drop(["Revenue"],axis=1)
+
 #%%
 #Checking for any null values
 jobs.isnull().sum()
@@ -899,6 +896,7 @@ jobs_lm = jobs_lm.merge(twdummy,left_index=True,right_index=True).replace(np.nan
 # %%
 jobs_lm.to_csv('jobs_lm.csv')
 # %%
+from scipy import stats
 # running a  t-test for top words to check for correlation with salaries
 topwords = list(jobs_lm.columns)
 ttests=[]
@@ -954,6 +952,7 @@ X = jobs[['Rating','Sector','MaxEmpSize','State_Location', 'MaxRevenue', 'Years_
 y = jobs[['Est_Salary']]
 
 #%%
+#Splitng dataset in 80:20 ratio 80 train and 20 test
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.2,
                                                     random_state=42)
@@ -1033,6 +1032,7 @@ jobs.seniority.value_counts()
 jobs.isnull().sum()
 
 # %%
+#Creating dataframe of only numeric variable
 df_numeric = jobs.select_dtypes(include=np.number)
 df_numeric.head()
 
@@ -1051,17 +1051,16 @@ df_numeric.isnull().sum()
 df_numeric.shape
 
 #%%
+#creating dataframe of only categorical variable
 df_categoric = jobs.select_dtypes(include = object)
 df_categoric.head()
 
 #%%
 df_categoric.Size=df_categoric.Size.fillna(df_categoric.Size.mode()[0])
 df_categoric.Revenue=df_categoric.Revenue.fillna(df_categoric.Revenue.mode()[0])
-df_categoric.Type_ownership=df_categoric.Type_ownership.fillna(df_categoric.Type_ownership.mode()[0])
-
 
 # %%
-df_categoric = df_categoric.drop(labels=['Type_ownership', 'Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
+df_categoric = df_categoric.drop(labels=['Industry', 'job_title', 'Company_Name','Location', 'Headquarters', 'Job_Domain', 'Job Role', 'refined_skills', 'City', 'State', 'HQCity', 'HQState', 'Revenue_USD'],axis=1) # Removing unnecesary column 
 
 #%%
 df_categoric.isnull().sum()
@@ -1071,6 +1070,7 @@ df_categoric.head()
 # %%
 df_categoric.shape
 # %%
+#One hot encoding on categorical data 
 dummy_encoded_variables = pd.get_dummies(df_categoric, drop_first = True)
 dummy_encoded_variables.head()
 
@@ -1091,6 +1091,7 @@ df_dummy = sm.add_constant(df_dummy)
 
 # separate the independent and dependent variables
 # drop(): drops the specified columns
+#Droping the independent variable
 X = df_dummy.drop(["Est_Salary"], axis = 1)
 
 # extract the target variable from the data set
@@ -1105,13 +1106,7 @@ from statsmodels.tools.eval_measures import rmse
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
-<<<<<<< Updated upstream
-# split data into train data and test data 
-# what proportion of data should be included in test data is passed using 'test_size'
-# set 'random_state' to get the same data each time the code is executed 
-=======
 # split data into 80:20 ratio 80 train data and 20 test data 
->>>>>>> Stashed changes
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 10)
 
 # check the dimensions of the train & test subset for 
@@ -1145,26 +1140,17 @@ print(linreg_full.summary())
 
 #%%
 linreg_full_predictions = linreg_full.predict(X_test)
-<<<<<<< Updated upstream
-linreg_full_predictions
-
-
-#%%
-=======
-#Target variable
->>>>>>> Stashed changes
 actual_salary = y_test["Est_Salary"]
 
 
-
 #%%
-# calculate rmse using rmse()
+# calculate rmse for ols model using rmse()
 linreg_full_rmse = rmse(actual_salary,linreg_full_predictions )
 
-# calculate R-squared using rsquared
+# calculate R-squared for ols model using rsquared
 linreg_full_rsquared = linreg_full.rsquared
 
-# calculate Adjusted R-Squared using rsquared_adj
+# calculate Adjusted R-Squared for ols model using rsquared_adj
 linreg_full_rsquared_adj = linreg_full.rsquared_adj 
 
 #%%
@@ -1194,17 +1180,8 @@ from sklearn import metrics
 from sklearn.tree import DecisionTreeRegressor
 
 # %%
-# instantiate the 'DecisionTreeRegressor' object using 'mse' criterion
-<<<<<<< Updated upstream
-# pass the 'random_state' to obtain the same samples for each time you run the code
-decision_tree = DecisionTreeRegressor(criterion = 'mse', random_state = 10) #Max depth D.Tree gets formed
 
-# fit the model using fit() on train data
-decision_tree_model = decision_tree.fit(X_train, y_train) #fit() method is defined inside the class 'DecisionTreeClassifier'
-=======
 decision_tree = DecisionTreeRegressor(criterion = 'mse', random_state = 10) 
->>>>>>> Stashed changes
-
 decision_tree_model = decision_tree.fit(X_train, y_train)
 y_pred_DT=decision_tree_model.predict(X_test)
 
@@ -1248,17 +1225,6 @@ rf_reg.fit(X_train, y_train)
 y_pred_RF = rf_reg.predict(X_test)
 
 #%%
-<<<<<<< Updated upstream
-# Calculate MAE
-rf_reg_MAE = metrics.mean_absolute_error(y_test, y_pred_RF)
-print('Mean Absolute Error (MAE):', rf_reg_MAE)
-
-# Calculate MSE
-rf_reg_MSE = metrics.mean_squared_error(y_test, y_pred_RF)
-print('Mean Squared Error (MSE):', rf_reg_MSE)
-
-=======
->>>>>>> Stashed changes
 # Calculate RMSE
 rf_reg_RMSE = np.sqrt(metrics.mean_squared_error(y_test, y_pred_RF))
 print('Root Mean Squared Error (RMSE):', rf_reg_RMSE)
@@ -1320,7 +1286,8 @@ print("The shape of y2_train is:",y2_train.shape)
 print("The shape of y2_test is:",y2_test.shape)
 #%%
 # build the model
-meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10)) #Similar to a random forest, just that the DT's are having all the features to split on
+meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10)) 
+#Similar to a random forest, just that the DT's are having all the features to split on
 
 # fit the model
 meta_estimator.fit(X2_train, y2_train) 
@@ -1392,6 +1359,7 @@ result_tabulation
 import xgboost as xgb
 
 #%%
+
 xg_reg = xgb.XGBRegressor(objective ='reg:linear', colsample_bytree = 0.3, learning_rate = 0.1,
                 max_depth = 15, alpha = 10, n_estimators = 150)
 
@@ -1401,18 +1369,7 @@ xg_preds = xg_reg.predict(X_test)
 
 
 #%%
-<<<<<<< Updated upstream
-# Calculate MAE
-xg_reg_MAE = metrics.mean_absolute_error(y_test, xg_preds)
-print('Mean Absolute Error (MAE):', xg_reg_MAE)
-
-# Calculate MSE
-xg_reg_MSE = metrics.mean_squared_error(y_test, xg_preds)
-print('Mean Squared Error (MSE):', xg_reg_MSE)
-=======
 # Model evaluation for XGBoost model
->>>>>>> Stashed changes
-
 # Calculate RMSE
 xg_reg_RMSE = np.sqrt(metrics.mean_squared_error(y_test, xg_preds))
 print('Root Mean Squared Error (RMSE):', xg_reg_RMSE)
@@ -1425,10 +1382,6 @@ r_squared_xg=xg_reg.score(X_test,y_test)
 n = len(X_train)
 # No of independent variables
 p = len(X_train.columns) 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 #Compute Adj-R-Squared
 Adj_r_squared_xg = 1 - (1-r_squared_xg)*(n-1)/(n-p-1)
 # Compute RMSE
@@ -1443,10 +1396,6 @@ xg_full_metrics = pd.Series({'Model': "XGBoost",
                    })
 
 result_tabulation = result_tabulation.append(xg_full_metrics, ignore_index = True)
-<<<<<<< Updated upstream
-
-# print the result table
-=======
 # print the final model evaluation table
->>>>>>> Stashed changes
 result_tabulation
+
