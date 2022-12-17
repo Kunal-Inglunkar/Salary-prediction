@@ -9,6 +9,8 @@ import plotly.express as px
 import plotly.io as pio
 import re
 from wordcloud import WordCloud,STOPWORDS
+
+
 %matplotlib inline
 
 
@@ -586,6 +588,7 @@ Sal_by_state = df_by_state.merge(jobs,on='State_Location',how='left')
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
+# error here
 sns.barplot(x='Jobs',y='State_Location',data=Sal_by_state,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='State_Location',data=Sal_by_state, join=False,ax=ax_point, palette='Accent')
 plt.subplots_adjust(top=0.9)
@@ -737,7 +740,8 @@ Sal_by_firm_VA_DC_MD = df_by_firm.merge(jobs_VA_DC_MD,on='Company_Name',how='lef
 
 sns.set(style="white")
 f, (ax_bar, ax_point) = plt.subplots(ncols=2, sharey=True, gridspec_kw= {"width_ratios":(0.6,1)},figsize=(13,7))
-sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm_VA_DC_MD,ax=ax_bar, palette='Accent').set(ylabel="")
+# error here
+#sns.barplot(x='Hires',y='Company_Name',data=Sal_by_firm_VA_DC_MD,ax=ax_bar, palette='Accent').set(ylabel="")
 sns.pointplot(x='Est_Salary',y='Company_Name',data=Sal_by_firm_VA_DC_MD, join=False,ax=ax_point, palette='Accent').set(
     ylabel="",xlabel="Salary ($'000)")
 plt.subplots_adjust(top=0.9)
@@ -976,14 +980,7 @@ plt.xticks(rotation='vertical')
 plt.show()
 
 
-
-# %%
-## Modeling:
-
-
-#%%
-
-### eda
+# Preparing data for model building
 
 #%%
 def title_simplifier(title):
@@ -1088,8 +1085,6 @@ df_dummy = pd.concat([df_numeric, dummy_encoded_variables], axis=1)
 # display data with dummy variables
 df_dummy.head()
 
-# Model Codes:
-
 #%%
 # add the intercept column using 'add_constant()'
 df_dummy = sm.add_constant(df_dummy)
@@ -1102,18 +1097,16 @@ X = df_dummy.drop(["Est_Salary"], axis = 1)
 # extract the target variable from the data set
 y = df_dummy[["Est_Salary"]]
 
-#%%
-X.shape
-#%%
-y.shape
+print(X.shape)
+print(y.shape)
 
 # %%
 #importing sklearn for split data
+from statsmodels.tools.eval_measures import rmse
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
-# split data into 80:20 ratio 80 train data and  20 test data 
-# what proportion of data should be included in test data is passed using 'test_size'
-# set 'random_state' to get the same data each time the code is executed 
+# split data into 80:20 ratio 80 train data and 20 test data 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 10)
 
 # check the dimensions of the train & test subset for 
@@ -1132,12 +1125,14 @@ print("The shape of y_test is:",y_test.shape)
 
 #%%
 
-## OLS
+# Model Building
+
+# 1. Linear Regression
+
+import statsmodels.api as sm
 
 # %%
 # build a full model using OLS()
-# consider the log of sales price as the target variable
-# use fit() to fit the model on train data
 linreg_full = sm.OLS(y_train, X_train).fit()
 
 # print the summary output
@@ -1145,22 +1140,8 @@ print(linreg_full.summary())
 
 #%%
 linreg_full_predictions = linreg_full.predict(X_test)
-linreg_full_predictions
-
-
-#%%
-#Target variable
 actual_salary = y_test["Est_Salary"]
-actual_salary
-#%%
-#importing stats model to add intercept and to implement OLS
-import statsmodels.api as sm
-#importing sklearn for split data
-from sklearn.model_selection import train_test_split
-from statsmodels.tools.eval_measures import rmse
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-# importing random lib for replace age values
-import random
+
 
 #%%
 # calculate rmse for ols model using rmse()
@@ -1178,8 +1159,6 @@ linreg_full_rsquared_adj = linreg_full.rsquared_adj
 # create a list of column names
 cols = ['Model', 'RMSE', 'R-Squared', 'Adj. R-Squared']
 
-# create a empty dataframe of the colums
-# columns: specifies the columns to be selected
 result_tabulation = pd.DataFrame(columns = cols)
 
 # compile the required information
@@ -1189,11 +1168,7 @@ linreg_full_metrics = pd.Series({'Model': "Linreg full model ",
                      'Adj. R-Squared': linreg_full_rsquared_adj     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(linreg_full_metrics, ignore_index = True)
-
 # print the result table
 result_tabulation
 
@@ -1201,40 +1176,29 @@ result_tabulation
 # %%
 # 2. Decision Tree
 from sklearn import tree
-from sklearn.tree import export_graphviz
 from sklearn import metrics
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import GridSearchCV
 
 # %%
-# instantiate the 'DecisionTreeRegressor' object using 'mse' criterion
-# pass the 'random_state' to obtain the same samples for each time you run the code
+
 decision_tree = DecisionTreeRegressor(criterion = 'mse', random_state = 10) 
-#Max depth D.Tree gets formed
-
-# fit the model using fit() on train data
-decision_tree_model = decision_tree.fit(X_train, y_train) #fit() method is defined inside the class 'DecisionTreeClassifier'
-
-# %%
+decision_tree_model = decision_tree.fit(X_train, y_train)
 y_pred_DT=decision_tree_model.predict(X_test)
 
 #%%
-
 r_squared_DT=decision_tree_model.score(X_test,y_test)
 # Number of observation or sample size
 n = len(X_train)
-
 # No of independent variables
 p = len(X_train.columns)
-
 #Compute Adj-R-Squared
 Adj_r_squared_DT = 1 - (1-r_squared_DT)*(n-1)/(n-p-1)
-Adj_r_squared_DT
 
-#%%
 # Compute RMSE
 from math import sqrt
 rmse_DT = sqrt(mean_squared_error(y_test, y_pred_DT))
+
+#%%
 # compile the required information
 linreg_full_metrics = pd.Series({'Model': "Decision Tree Model ",
                      'RMSE':rmse_DT,
@@ -1242,19 +1206,16 @@ linreg_full_metrics = pd.Series({'Model': "Decision Tree Model ",
                      'Adj. R-Squared': Adj_r_squared_DT     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(linreg_full_metrics, ignore_index = True)
-
 # print the result table
 result_tabulation
 
+#%%
 # 3. Random Forest
 
-#%%
-# import library for random forest regressor
 from sklearn.ensemble import RandomForestRegressor
+
+#%%
 #intantiate the regressor
 rf_reg = RandomForestRegressor(n_estimators=100, random_state=10)
 
@@ -1264,15 +1225,6 @@ rf_reg.fit(X_train, y_train)
 y_pred_RF = rf_reg.predict(X_test)
 
 #%%
-#Calculating MAE,MSE,RMSE for random forest model
-# Calculate MAE
-rf_reg_MAE = metrics.mean_absolute_error(y_test, y_pred_RF)
-print('Mean Absolute Error (MAE):', rf_reg_MAE)
-
-# Calculate MSE
-rf_reg_MSE = metrics.mean_squared_error(y_test, y_pred_RF)
-print('Mean Squared Error (MSE):', rf_reg_MSE)
-
 # Calculate RMSE
 rf_reg_RMSE = np.sqrt(metrics.mean_squared_error(y_test, y_pred_RF))
 print('Root Mean Squared Error (RMSE):', rf_reg_RMSE)
@@ -1281,7 +1233,6 @@ print('Root Mean Squared Error (RMSE):', rf_reg_RMSE)
 r_squared_RF=rf_reg.score(X_test,y_test)
 # Number of observation or sample size
 n = len(X_train)
-
 # No of independent variables
 p = len(X_train.columns) 
 
@@ -1298,45 +1249,30 @@ linreg_full_metrics = pd.Series({'Model': "Random Forest ",
                      'Adj. R-Squared': Adj_r_squared_RF     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(linreg_full_metrics, ignore_index = True)
-
 # print the result table
 result_tabulation
 
 #%%
 
-# 7. Ensemble Techniques
+# 4. Bagging Regressor
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
-from sklearn.feature_selection import mutual_info_regression
 x2 = X
 y2 = y
-x2.shape
-X.shape
+
 #%%
+# Performing KBest Feature selection
 select_feature = SelectKBest(f_regression, k=42).fit(x2,y2)
 X2=select_feature.transform(x2)
 X2.shape
-#%%
-D=select_feature.get_support(indices=True)
-D
 
 #%%
-features_df_new = X.iloc[:,D]
-features_df_new.columns
-
-#%%
-#import libraries
 from sklearn.ensemble import BaggingRegressor
-# split data into train data and test data 
-# what proportion of data should be included in test data is passed using 'test_size'
-# set 'random_state' to get the same data each time the code is executed 
+
+#%%
 X2_train, X2_test, y2_train, y2_test = train_test_split(X2, y2, test_size = 0.2, random_state = 1)
 
-# check the dimensions of the train & test subset for 
 # print dimension of predictors train set
 print("The shape of X2_train is:",X2_train.shape)
 
@@ -1355,21 +1291,15 @@ meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10))
 
 # fit the model
 meta_estimator.fit(X2_train, y2_train) 
-
-
-#%%
 # predict the values
 y_pred_ET = meta_estimator.predict(X2_test)
-y_pred_ET
 
 #%%
 r_squared_ET=meta_estimator.score(X2_test,y2_test)
 # Number of observation or sample size
 n = len(X2_train) 
-
 # No of independent variables
 p = len(X_train.columns)
-
 #Compute Adj-R-Squared
 Adj_r_squared_ET = 1 - (1-r_squared_ET)*(n-1)/(n-p-1)
 # Compute RMSE
@@ -1383,34 +1313,29 @@ linreg_full_metrics = pd.Series({'Model': "Ensemble Techniques (Bagging Meta Est
                      'Adj. R-Squared': Adj_r_squared_ET     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(linreg_full_metrics, ignore_index = True)
-
 # print the result table
 result_tabulation
 
 #%%
 
-# 8. Ensemble Techniques(Adaboost)
+# 5. Adaboost
+
 from sklearn.ensemble import AdaBoostRegressor
 
+#%%
 # build the model
 adaboost = AdaBoostRegressor(random_state=10)
 # fit the model
 adaboost.fit(X2_train, y2_train)
-
 y_pred_adaboost  = adaboost.predict(X2_test)
 
 #%%
 r_squared_ADA=meta_estimator.score(X2_test,y2_test)
 # Number of observation or sample size
 n = len(X2_train) 
-
 # No of independent variables
 p = len(X_train.columns)
-
 #Compute Adj-R-Squared
 Adj_r_squared_ADA = 1 - (1-r_squared_ADA)*(n-1)/(n-p-1)
 # Compute RMSE
@@ -1424,11 +1349,7 @@ linreg_full_metrics = pd.Series({'Model': "Ensemble Techniques (ADA Boost) ",
                      'Adj. R-Squared': Adj_r_squared_ADA     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(linreg_full_metrics, ignore_index = True)
-
 # print the result table
 result_tabulation
 
@@ -1448,23 +1369,10 @@ xg_preds = xg_reg.predict(X_test)
 
 
 #%%
-#Model evaluation for XGBoost model
-
-# Calculate MAE
-xg_reg_MAE = metrics.mean_absolute_error(y_test, xg_preds)
-print('Mean Absolute Error (MAE):', xg_reg_MAE)
-
-# Calculate MSE
-xg_reg_MSE = metrics.mean_squared_error(y_test, xg_preds)
-print('Mean Squared Error (MSE):', xg_reg_MSE)
-
+# Model evaluation for XGBoost model
 # Calculate RMSE
 xg_reg_RMSE = np.sqrt(metrics.mean_squared_error(y_test, xg_preds))
 print('Root Mean Squared Error (RMSE):', xg_reg_RMSE)
-
-
-
-#%%
 print('The accuracy of the xgboost classifier is {:.2f} out of 1 on the training data'.format(xg_reg.score(X_train, y_train)))
 print('The accuracy of the xgboost classifier is {:.2f} out of 1 on the test data'.format(xg_reg.score(X_test, y_test)))
 
@@ -1472,10 +1380,8 @@ print('The accuracy of the xgboost classifier is {:.2f} out of 1 on the test dat
 r_squared_xg=xg_reg.score(X_test,y_test)
 # Number of observation or sample size
 n = len(X_train)
-
 # No of independent variables
 p = len(X_train.columns) 
-#Calculating RMSE,Adj.R-Square for xgboost
 #Compute Adj-R-Squared
 Adj_r_squared_xg = 1 - (1-r_squared_xg)*(n-1)/(n-p-1)
 # Compute RMSE
@@ -1489,13 +1395,7 @@ xg_full_metrics = pd.Series({'Model': "XGBoost",
                      'Adj. R-Squared': Adj_r_squared_xg     
                    })
 
-# append our result table using append()
-# ignore_index=True: does not use the index labels
-# python can only append a Series if ignore_index=True or if the Series has a name
 result_tabulation = result_tabulation.append(xg_full_metrics, ignore_index = True)
-
 # print the final model evaluation table
-#%%
 result_tabulation
 
-# %%
