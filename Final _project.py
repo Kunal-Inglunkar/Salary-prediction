@@ -1,3 +1,6 @@
+#%% [markdown]
+# # Salary Prediction for Data Science related jobs
+
 #%%
 # Loading packages for analysis
 import numpy as np 
@@ -10,6 +13,7 @@ import plotly.io as pio
 import re
 from wordcloud import WordCloud,STOPWORDS
 
+<<<<<<< Updated upstream
 
 %matplotlib inline
 
@@ -17,6 +21,11 @@ from wordcloud import WordCloud,STOPWORDS
 # %%
 #Database setup
 jobs = pd.read_csv('../dataset/all_jobs.csv') # Importing dataset
+=======
+#%%
+#Importing the dataset into a dataframe and renaming the columns 
+jobs = pd.read_csv('../dataset/all_jobs.csv')
+>>>>>>> Stashed changes
 jobs.rename(columns={'Job Title': 'job_title', 'Salary Estimate': 'Salary_Estimate','Job Description': 'Job_Description','Company Name': 'Company_Name','Type of ownership':'Type_ownership','Easy Apply':'Easy_apply'}, inplace= True)
 
 # %%
@@ -1086,6 +1095,8 @@ df_dummy = pd.concat([df_numeric, dummy_encoded_variables], axis=1)
 df_dummy.head()
 
 #%%
+# Importing sm for adding intercept column
+import statsmodels.api as sm
 # add the intercept column using 'add_constant()'
 df_dummy = sm.add_constant(df_dummy)
 
@@ -1128,8 +1139,6 @@ print("The shape of y_test is:",y_test.shape)
 # Model Building
 
 # 1. Linear Regression
-
-import statsmodels.api as sm
 
 # %%
 # build a full model using OLS()
