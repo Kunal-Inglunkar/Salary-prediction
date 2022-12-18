@@ -776,12 +776,6 @@ plt.tight_layout()
 
 #%%
 ###Anova Analysis to check for correlation between numerical and categorical variables
-import statsmodels.api as sm
-from statsmodels.formula.api import ols
-
-model = ols('Est_Salary ~ State', data=jobs).fit()
-aov_table = sm.stats.anova_lm(model, typ=2)
-aov_table
 
 #%%
 #Sector
@@ -1295,6 +1289,7 @@ print("The shape of y2_train is:",y2_train.shape)
 
 # print dimension of target test set
 print("The shape of y2_test is:",y2_test.shape)
+
 #%%
 # build the model
 meta_estimator = BaggingRegressor(tree.DecisionTreeRegressor(random_state=10)) 
